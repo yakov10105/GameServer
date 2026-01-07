@@ -11,5 +11,7 @@ public interface ISessionManager
     WebSocket? GetSocket(Guid playerId);
     
     bool IsPlayerOnline(Guid playerId);
+
+    IReadOnlyCollection<Guid> GetAllPlayerIds();
 }
 

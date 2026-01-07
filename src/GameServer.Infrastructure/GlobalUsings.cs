@@ -9,3 +9,7 @@ global using System.Threading.Tasks;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
+global using GameServer.Domain.Common;
+global using GameServer.Domain.Enums;
+global using GameServer.Domain.Interfaces;
+
