@@ -1,4 +1,4 @@
-# .NET
+
 *.swp
 *.*~
 project.lock.json
@@ -6,19 +6,15 @@ project.lock.json
 *.pyc
 nupkg/
 
-# Visual Studio Code
 .vscode/
 
-# Rider
 .idea/
 
-# User-specific files
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
 
-# Build results
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
@@ -34,69 +30,51 @@ bld/
 [Ll]og/
 [Ll]ogs/
 
-# Visual Studio cache/options directory
 .vs/
 
-# MSTest test Results
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
 
-# NUnit
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
 
-# .NET Core
 project.lock.json
 project.fragment.lock.json
 artifacts/
 
-# ASP.NET Scaffolding
 ScaffoldingReadMe.txt
 
-# ReSharper
 _ReSharper*/
 *.[Rr]e[Ss]harper
 *.DotSettings.user
 
-# TeamCity
 _TeamCity*
 
-# DotCover
 *.dotCover
 
-# NCrunch
 _NCrunch_*
 .*crunch*.local.xml
 nCrunchTemp_*
 
-# NuGet Packages
 *.nupkg
 *.snupkg
 **/packages/*
 !**/packages/build/
 
-# NuGet Symbol Packages
 *.snupkg
 
-# The packages folder can be ignored because of Package Restore
 **/[Pp]ackages/*
 
-# Uncomment if necessary however generally it will be regenerated when needed
-#!**/[Pp]ackages/repositories.config
-# NuGet v3's project.json files produces more ignorable files
 *.nuget.props
 *.nuget.targets
 
-# Microsoft Azure Build Output
 csx/
 *.build.csdef
 
-# Microsoft Azure Emulator
 ecf/
 rcf/
 
-# Windows Store app package directories and files
 AppPackages/
 BundleArtifacts/
 Package.StoreAssociation.xml
@@ -105,13 +83,9 @@ _pkginfo.txt
 *.appxbundle
 *.appxupload
 
-# Visual Studio cache files
-# files ending in .cache can be ignored
 *.[Cc]ache
-# but keep track of directories ending in .cache
 !?*.[Cc]ache/
 
-# Others
 ClientBin/
 ~$*
 *~
@@ -122,21 +96,16 @@ ClientBin/
 *.publishsettings
 orleans.codegen.cs
 
-# Docker
 docker-compose.override.yml
 
-# ==================================
-# PROJECT-SPECIFIC: Keep PRD Private
-# ==================================
+
 docs/
 
-# Backup & Temporary Files
 *.bak
 *.tmp
 *.temp
 *.log
 
-# OS Generated Files
 .DS_Store
 .DS_Store?
 ._*
