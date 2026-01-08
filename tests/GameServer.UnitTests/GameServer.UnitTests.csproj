@@ -10,6 +10,7 @@
     <ProjectReference Include="..\..\src\GameServer.Domain\GameServer.Domain.csproj" />
     <ProjectReference Include="..\..\src\GameServer.Application\GameServer.Application.csproj" />
     <ProjectReference Include="..\..\src\GameServer.Infrastructure\GameServer.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\GameServer.Api\GameServer.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

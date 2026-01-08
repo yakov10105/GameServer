@@ -81,5 +81,23 @@ public static partial class Log
         Level = LogLevel.Debug,
         Message = "Released lock for Player {PlayerId}")]
     public static partial void LockReleased(this ILogger logger, Guid playerId);
+
+    [LoggerMessage(
+    EventId = 5000,
+    Level = LogLevel.Information,
+    Message = "WebSocket accepted. Active connections: {ActiveConnections}")]
+    public static partial void ConnectionAccepted(this ILogger logger, int activeConnections);
+
+    [LoggerMessage(
+        EventId = 5001,
+        Level = LogLevel.Information,
+        Message = "Message received: {MessageType}, Size: {SizeBytes}, Latency: {LatencyMs}ms")]
+    public static partial void MessageReceived(this ILogger logger, string messageType, int sizeBytes, double latencyMs);
+
+    [LoggerMessage(
+        EventId = 5002,
+        Level = LogLevel.Warning,
+        Message = "Slow message processing: {MessageType} took {DurationMs}ms (threshold: {ThresholdMs}ms)")]
+    public static partial void SlowMessageProcessing(this ILogger logger, string messageType, double durationMs, int thresholdMs);
 }
 
