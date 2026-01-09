@@ -84,7 +84,6 @@ You are a Senior Performance Engineer for a **real-time WebSocket game server**.
 - **ValueTask:** Use `ValueTask<Result<T>>` for handler methods that may return cached results (e.g., validation failures).
 - **CancellationToken:** ALWAYS pass through WebSocket operations. Link to `HttpContext.RequestAborted`.
   - _Pattern:_ `await webSocket.ReceiveAsync(buffer, context.RequestAborted);`
-- **ConfigureAwait(false):** Use in all Infrastructure/Application layer code to avoid SynchronizationContext captures.
 
 ## 6. WebSocket-Specific Optimizations
 

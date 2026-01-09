@@ -28,15 +28,13 @@ public sealed class LoginHandler(
             return Result.Failure(new Error("InvalidDeviceId", "DeviceId is required"));
         }
 
-        var playerIdResult = await stateRepository.GetPlayerIdByDeviceIdAsync(request.DeviceId, cancellationToken)
-            .ConfigureAwait(false);
+        var playerIdResult = await stateRepository.GetPlayerIdByDeviceIdAsync(request.DeviceId, cancellationToken);
 
         Guid playerId;
 
         if (!playerIdResult.IsSuccess)
         {
-            var createResult = await stateRepository.CreatePlayerAsync(request.DeviceId, cancellationToken)
-                .ConfigureAwait(false);
+            var createResult = await stateRepository.CreatePlayerAsync(request.DeviceId, cancellationToken);
             
             if (!createResult.IsSuccess)
             {

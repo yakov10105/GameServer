@@ -18,7 +18,7 @@ public sealed class WebSocketDirectNotifier(
             tasks[index++] = InternalSendAsync(messageBytes, playerId, cancellationToken);
         }
 
-        await Task.WhenAll(tasks).ConfigureAwait(false);
+        await Task.WhenAll(tasks);
     }
 
     public async Task BroadcastExceptAsync(Guid excludePlayerId, ReadOnlyMemory<byte> messageBytes, CancellationToken cancellationToken = default)
@@ -34,12 +34,12 @@ public sealed class WebSocketDirectNotifier(
             }
         }
 
-        await Task.WhenAll(tasks).ConfigureAwait(false);
+        await Task.WhenAll(tasks);
     }
 
     public async Task SendToPlayerAsync(Guid playerId, ReadOnlyMemory<byte> messageBytes, CancellationToken cancellationToken = default)
     {
-        await InternalSendAsync(messageBytes, playerId, cancellationToken).ConfigureAwait(false);
+        await InternalSendAsync(messageBytes, playerId, cancellationToken);
     }
 
     private async Task InternalSendAsync(ReadOnlyMemory<byte> messageBytes, Guid playerId, CancellationToken cancellationToken)
@@ -50,7 +50,7 @@ public sealed class WebSocketDirectNotifier(
 
         try
         {
-            await socket.SendAsync(messageBytes, WebSocketMessageType.Text, true, cancellationToken).ConfigureAwait(false);
+            await socket.SendAsync(messageBytes, WebSocketMessageType.Text, true, cancellationToken);
         }
         catch (Exception ex)
         {

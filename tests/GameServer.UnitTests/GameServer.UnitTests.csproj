@@ -11,6 +11,7 @@
     <ProjectReference Include="..\..\src\GameServer.Application\GameServer.Application.csproj" />
     <ProjectReference Include="..\..\src\GameServer.Infrastructure\GameServer.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\GameServer.Api\GameServer.Api.csproj" />
+    <ProjectReference Include="..\..\src\GameServer.ConsoleClient\GameServer.ConsoleClient.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,7 +20,10 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Moq" />
     <PackageReference Include="FluentAssertions" />
-    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="coverlet.collector" >
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
   </ItemGroup>
 

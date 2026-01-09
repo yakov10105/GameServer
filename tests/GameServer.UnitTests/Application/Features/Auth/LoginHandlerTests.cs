@@ -27,7 +27,7 @@ public class LoginHandlerTests
     {
         var deviceId = "new-device-123";
         var newPlayerId = Guid.NewGuid();
-        var payload = CreatePayload(new { deviceId });
+        var payload = CreatePayload(new { DeviceId = deviceId });
 
         _mockRepository.Setup(r => r.GetPlayerIdByDeviceIdAsync(deviceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<Guid>.Failure(new Error("NotFound", "Player not found")));
@@ -50,7 +50,7 @@ public class LoginHandlerTests
     {
         var deviceId = "existing-device-456";
         var existingPlayerId = Guid.NewGuid();
-        var payload = CreatePayload(new { deviceId });
+        var payload = CreatePayload(new { DeviceId = deviceId });
 
         _mockRepository.Setup(r => r.GetPlayerIdByDeviceIdAsync(deviceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<Guid>.Success(existingPlayerId));
@@ -70,7 +70,7 @@ public class LoginHandlerTests
     {
         var deviceId = "device-online";
         var playerId = Guid.NewGuid();
-        var payload = CreatePayload(new { deviceId });
+        var payload = CreatePayload(new { DeviceId = deviceId });
 
         _mockRepository.Setup(r => r.GetPlayerIdByDeviceIdAsync(deviceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<Guid>.Success(playerId));
@@ -88,7 +88,7 @@ public class LoginHandlerTests
     [Fact]
     public async Task HandleAsync_WithEmptyDeviceId_ShouldReturnInvalidDeviceIdError()
     {
-        var payload = CreatePayload(new { deviceId = "" });
+        var payload = CreatePayload(new { DeviceId = "" });
 
         var result = await _handler.HandleAsync(_mockWebSocket.Object, payload, CancellationToken.None);
 
@@ -100,7 +100,7 @@ public class LoginHandlerTests
     [Fact]
     public async Task HandleAsync_WithNullDeviceId_ShouldReturnInvalidDeviceIdError()
     {
-        var payload = CreatePayload(new { deviceId = (string?)null });
+        var payload = CreatePayload(new { DeviceId = (string?)null });
 
         var result = await _handler.HandleAsync(_mockWebSocket.Object, payload, CancellationToken.None);
 
@@ -111,7 +111,7 @@ public class LoginHandlerTests
     [Fact]
     public async Task HandleAsync_WithWhitespaceDeviceId_ShouldReturnInvalidDeviceIdError()
     {
-        var payload = CreatePayload(new { deviceId = "   " });
+        var payload = CreatePayload(new { DeviceId = "   " });
 
         var result = await _handler.HandleAsync(_mockWebSocket.Object, payload, CancellationToken.None);
 
@@ -134,7 +134,7 @@ public class LoginHandlerTests
     public async Task HandleAsync_WhenCreatePlayerFails_ShouldReturnError()
     {
         var deviceId = "fail-device";
-        var payload = CreatePayload(new { deviceId });
+        var payload = CreatePayload(new { DeviceId = deviceId });
 
         _mockRepository.Setup(r => r.GetPlayerIdByDeviceIdAsync(deviceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<Guid>.Failure(new Error("NotFound", "Player not found")));
@@ -154,7 +154,7 @@ public class LoginHandlerTests
     {
         var deviceId = "socket-test-device";
         var playerId = Guid.NewGuid();
-        var payload = CreatePayload(new { deviceId });
+        var payload = CreatePayload(new { DeviceId = deviceId });
         WebSocket? capturedSocket = null;
 
         _mockRepository.Setup(r => r.GetPlayerIdByDeviceIdAsync(deviceId, It.IsAny<CancellationToken>()))
@@ -175,8 +175,8 @@ public class LoginHandlerTests
     public async Task HandleAsync_ShouldPassCancellationTokenToRepository()
     {
         var deviceId = "cancel-test-device";
-        var payload = CreatePayload(new { deviceId });
-        var cts = new CancellationTokenSource();
+        var payload = CreatePayload(new { DeviceId = deviceId });
+        using var cts = new CancellationTokenSource();
         CancellationToken capturedToken = default;
 
         _mockRepository.Setup(r => r.GetPlayerIdByDeviceIdAsync(deviceId, It.IsAny<CancellationToken>()))
@@ -201,7 +201,7 @@ public class LoginHandlerTests
     public async Task HandleAsync_WithVariousValidDeviceIds_ShouldSucceed(string deviceId)
     {
         var playerId = Guid.NewGuid();
-        var payload = CreatePayload(new { deviceId });
+        var payload = CreatePayload(new { DeviceId = deviceId });
 
         _mockRepository.Setup(r => r.GetPlayerIdByDeviceIdAsync(deviceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<Guid>.Success(playerId));

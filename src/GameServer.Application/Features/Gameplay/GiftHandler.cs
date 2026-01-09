@@ -49,8 +49,7 @@ public sealed class GiftHandler(
             return Result.Failure(new Error("InvalidResourceType", "Resource type must be Coins or Rolls"));
         }
 
-        var friendsResult = await stateRepository.GetFriendIdsAsync(senderId.Value, cancellationToken)
-            .ConfigureAwait(false);
+        var friendsResult = await stateRepository.GetFriendIdsAsync(senderId.Value, cancellationToken);
 
         if (!friendsResult.IsSuccess || friendsResult.Value is null)
         {
@@ -65,12 +64,12 @@ public sealed class GiftHandler(
         using var lockHandle = await synchronizationProvider.AcquireLocksAsync(
             senderId.Value, 
             request.FriendPlayerId, 
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
 
         var senderBalanceResult = await stateRepository.GetResourceAmountAsync(
             senderId.Value, 
             request.Type, 
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
 
         if (!senderBalanceResult.IsSuccess)
         {
@@ -88,7 +87,7 @@ public sealed class GiftHandler(
                 senderId.Value,
                 request.Type,
                 senderBalanceResult.Value - request.Value,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
 
             if (!deductResult.IsSuccess)
             {
@@ -98,7 +97,7 @@ public sealed class GiftHandler(
             var friendBalanceResult = await stateRepository.GetResourceAmountAsync(
                 request.FriendPlayerId,
                 request.Type,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
 
             if (!friendBalanceResult.IsSuccess)
             {
@@ -109,7 +108,7 @@ public sealed class GiftHandler(
                 request.FriendPlayerId,
                 request.Type,
                 friendBalanceResult.Value + request.Value,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
 
             if (!addResult.IsSuccess)
             {
@@ -117,7 +116,7 @@ public sealed class GiftHandler(
             }
 
             return Result.Success();
-        }, cancellationToken).ConfigureAwait(false);
+        }, cancellationToken);
 
         if (!transactionResult.IsSuccess)
         {
@@ -132,7 +131,7 @@ public sealed class GiftHandler(
             await gameNotifier.SendToPlayerAsync(
                 request.FriendPlayerId, 
                 messageBytes, 
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
         }
 
         return Result.Success();
