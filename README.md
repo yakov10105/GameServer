@@ -11,7 +11,7 @@ graph TB
     subgraph API["🌐 GameServer.Api"]
         WS[WebSocket Middleware]
         MD[Message Dispatcher]
-        HC[/health Endpoint]
+        HC[Health Endpoint]
     end
 
     subgraph APP["⚙️ GameServer.Application"]
