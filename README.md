@@ -132,7 +132,7 @@ docker-compose --profile client run --rm gameserver-client
 
 ```bash
 # Clone and restore
-git clone <repository-url>
+git clone https://github.com/yakov10105/GameServer.git
 cd assignment
 dotnet restore
 
