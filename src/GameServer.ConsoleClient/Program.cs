@@ -16,12 +16,7 @@ var logLevel = verboseMode
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Is(logLevel)
-    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-    .MinimumLevel.Override("System", LogEventLevel.Warning)
-    .Enrich.FromLogContext()
-    .WriteTo.Console(
-        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
-        theme: Serilog.Sinks.SystemConsole.Themes.AnsiConsoleTheme.Code)
+    .WriteTo.File("logs/console-client-.log", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 var builder = Host.CreateApplicationBuilder(filteredArgs);

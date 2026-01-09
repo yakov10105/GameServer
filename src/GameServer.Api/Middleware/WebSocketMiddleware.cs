@@ -43,6 +43,14 @@ public sealed class WebSocketMiddleware(
             
             await HandleMessageAsync(webSocket, messageDispatcher, context.RequestAborted);
         }
+        catch (OperationCanceledException)
+        {
+            logger.Information("Client disconnected");
+        }
+        catch (WebSocketException) when (webSocket?.State != WebSocketState.Open)
+        {
+            logger.Information("Client connection closed abruptly");
+        }
         catch (Exception ex)
         {
             logger.WebSocketError(Guid.Empty, ex.Message, ex);
@@ -77,11 +85,12 @@ public sealed class WebSocketMiddleware(
                 var message = await ReceiveFullMessageAsync(webSocket, buffer, cancellationToken);
                 var latencyMs = stopwatch.Elapsed.TotalMilliseconds;
 
-                logger.MessageReceived("Unknown", message.Length, latencyMs);
+                var messageType = ExtractMessageType(message);
+                logger.MessageReceived(messageType, message.Length, latencyMs);
 
                 if (latencyMs > LatencyThresholdMs)
                 {
-                    logger.SlowMessageProcessing("Unknown", latencyMs, LatencyThresholdMs);
+                    logger.SlowMessageProcessing(messageType, latencyMs, LatencyThresholdMs);
                 }
 
                 await messageDispatcher.DispatchAsync(webSocket, message, cancellationToken);
@@ -91,6 +100,27 @@ public sealed class WebSocketMiddleware(
         {
             ArrayPool<byte>.Shared.Return(buffer);
         }
+    }
+
+    private static string ExtractMessageType(ReadOnlyMemory<byte> message)
+    {
+        if (message.IsEmpty)
+            return "Empty";
+
+        try
+        {
+            using var doc = JsonDocument.Parse(message);
+            if (doc.RootElement.TryGetProperty("type", out var typeProperty))
+            {
+                return typeProperty.GetString() ?? "Unknown";
+            }
+        }
+        catch
+        {
+            // Ignore parse errors for logging purposes
+        }
+
+        return "Unknown";
     }
 
     /// <summary>
