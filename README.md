@@ -50,7 +50,7 @@ A production-grade, distributed-ready game server built with .NET 8 using raw We
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/yakov10105/GameServer.git
 cd assignment
 
 # Start the server
