@@ -1,8 +1,4 @@
 using GameServer.Api.Configuration;
-using GameServer.Api.Middleware;
-using GameServer.Application;
-using GameServer.Infrastructure;
-using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 

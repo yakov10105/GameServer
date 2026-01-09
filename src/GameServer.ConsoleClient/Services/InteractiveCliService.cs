@@ -1,5 +1,4 @@
 using GameServer.ConsoleClient.Clients;
-using GameServer.ConsoleClient.Model.Request;
 using Microsoft.Extensions.Logging;
 
 namespace GameServer.ConsoleClient.Services;
@@ -251,8 +250,9 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
 
     private static Uri ResolveServerUri(string[] args)
     {
-        if (args.Length > 0)
-            return new Uri(args[0]);
+        var nonFlagArg = args.FirstOrDefault(a => !a.StartsWith('-'));
+        if (!string.IsNullOrEmpty(nonFlagArg))
+            return new Uri(nonFlagArg);
 
         var envUri = Environment.GetEnvironmentVariable("GAMESERVER_URI");
         if (!string.IsNullOrWhiteSpace(envUri))

@@ -1,10 +1,8 @@
 using System.Text;
 using System.Text.Json;
-using Moq;
 using GameServer.Application.Services;
 using GameServer.Application.Common.Interfaces;
 using GameServer.Application.Common;
-using System.Net.WebSockets;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GameServer.UnitTests.Application.Services;

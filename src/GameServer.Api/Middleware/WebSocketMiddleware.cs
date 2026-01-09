@@ -1,7 +1,3 @@
-
-
-using GameServer.Application.Common;
-
 namespace GameServer.Api.Middleware;
 
 /// <summary>
@@ -11,8 +7,7 @@ namespace GameServer.Api.Middleware;
 public sealed class WebSocketMiddleware(
     RequestDelegate next,
     ILogger<WebSocketMiddleware> logger,
-    IMessageDispatcher messageDispatcher
-    )
+    IServiceScopeFactory serviceScopeFactory)
 {
     private static readonly SemaphoreSlim _connectionLimiter = new(1000, 1000);
     private static int _activeConnections = 0;
@@ -42,7 +37,11 @@ public sealed class WebSocketMiddleware(
             logger.ConnectionAccepted(_activeConnections);
 
             webSocket = await context.WebSockets.AcceptWebSocketAsync();
-            await HandleMessageAsync(webSocket, context.RequestAborted);
+            
+            await using var scope = serviceScopeFactory.CreateAsyncScope();
+            var messageDispatcher = scope.ServiceProvider.GetRequiredService<IMessageDispatcher>();
+            
+            await HandleMessageAsync(webSocket, messageDispatcher, context.RequestAborted);
         }
         catch (Exception ex)
         {
@@ -64,7 +63,10 @@ public sealed class WebSocketMiddleware(
 
     }
 
-    private async Task HandleMessageAsync(WebSocket webSocket, CancellationToken cancellationToken)
+    private async Task HandleMessageAsync(
+        WebSocket webSocket, 
+        IMessageDispatcher messageDispatcher,
+        CancellationToken cancellationToken)
     {
         var buffer = ArrayPool<byte>.Shared.Rent(4096);
         try

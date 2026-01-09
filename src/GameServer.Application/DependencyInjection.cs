@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using GameServer.Application.Features.Auth;
 using GameServer.Application.Features.Gameplay;
 
