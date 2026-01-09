@@ -102,7 +102,7 @@ public sealed class WebSocketMiddleware(
 
         do
         {
-            result = await webSocket.ReceiveAsync(new Memory<byte>(buffer), cancellationToken);
+            result = await webSocket.ReceiveAsync(buffer.AsMemory(), cancellationToken);
 
             if (result.MessageType == WebSocketMessageType.Close)
             {

@@ -6,4 +6,4 @@ global using System.Threading;
 global using System.Threading.Tasks;
 global using GameServer.ConsoleClient.Model;
 global using System.Text.Json.Serialization;
-
+global using GameServer.ConsoleClient.Model.Request;
