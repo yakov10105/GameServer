@@ -35,9 +35,9 @@ public sealed class MessageDispatcher(
         if (handler is null)
             return;
 
-        var result = await handler.HandleAsync(webSocket, envelope.Payload, cancellationToken)
+        await handler.HandleAsync(webSocket, envelope.Payload, cancellationToken)
             .ConfigureAwait(false);
 
-        // TODO Phase 4: Send error response if !result.IsSuccess
+        // TODO Phase 4: Send error response to client
     }
 }

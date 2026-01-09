@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using GameServer.Application.Features.Auth;
+using GameServer.Application.Features.Gameplay;
 
 namespace GameServer.Application;
 
@@ -8,10 +10,9 @@ public static class DependencyInjection
     {
         services.AddScoped<IMessageDispatcher, MessageDispatcher>();
         
-        // TODO Phase 4: Add handlers when created
-        // services.AddKeyedScoped<IMessageHandler, LoginHandler>("LOGIN");
-        // services.AddKeyedScoped<IMessageHandler, ResourceHandler>("UPDATE_RESOURCES");
-        // services.AddKeyedScoped<IMessageHandler, GiftHandler>("SEND_GIFT");
+        services.AddKeyedScoped<IMessageHandler, LoginHandler>("LOGIN");
+        services.AddKeyedScoped<IMessageHandler, ResourceHandler>("UPDATE_RESOURCES");
+        services.AddKeyedScoped<IMessageHandler, GiftHandler>("SEND_GIFT");
         
         return services;
     }
