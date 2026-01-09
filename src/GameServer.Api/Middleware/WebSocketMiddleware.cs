@@ -42,7 +42,7 @@ public sealed class WebSocketMiddleware(
             logger.ConnectionAccepted(_activeConnections);
 
             webSocket = await context.WebSockets.AcceptWebSocketAsync();
-            await HandleMessageAsync(webSocket, context.RequestAborted).ConfigureAwait(false);
+            await HandleMessageAsync(webSocket, context.RequestAborted);
         }
         catch (Exception ex)
         {
@@ -55,7 +55,7 @@ public sealed class WebSocketMiddleware(
                 await webSocket.CloseAsync(
                     WebSocketCloseStatus.NormalClosure,
                     "Connection closing",
-                    CancellationToken.None).ConfigureAwait(false);
+                    CancellationToken.None);
             }
 
             Interlocked.Decrement(ref _activeConnections);
@@ -72,7 +72,7 @@ public sealed class WebSocketMiddleware(
             while (webSocket.State is WebSocketState.Open)
             {
                 var stopwatch = Stopwatch.StartNew();
-                var message = await ReceiveFullMessageAsync(webSocket, buffer, cancellationToken).ConfigureAwait(false);
+                var message = await ReceiveFullMessageAsync(webSocket, buffer, cancellationToken);
                 var latencyMs = stopwatch.Elapsed.TotalMilliseconds;
 
                 logger.MessageReceived("Unknown", message.Length, latencyMs);
@@ -82,7 +82,7 @@ public sealed class WebSocketMiddleware(
                     logger.SlowMessageProcessing("Unknown", latencyMs, LatencyThresholdMs);
                 }
 
-                await messageDispatcher.DispatchAsync(webSocket, message, cancellationToken).ConfigureAwait(false);
+                await messageDispatcher.DispatchAsync(webSocket, message, cancellationToken);
             }
         }
         finally
@@ -102,14 +102,14 @@ public sealed class WebSocketMiddleware(
 
         do
         {
-            result = await webSocket.ReceiveAsync(new Memory<byte>(buffer), cancellationToken).ConfigureAwait(false);
+            result = await webSocket.ReceiveAsync(new Memory<byte>(buffer), cancellationToken);
 
             if (result.MessageType == WebSocketMessageType.Close)
             {
                 await webSocket.CloseAsync(
                     WebSocketCloseStatus.NormalClosure,
                     "Client requested close",
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken);
                 return ReadOnlyMemory<byte>.Empty;
             }
 
@@ -120,7 +120,7 @@ public sealed class WebSocketMiddleware(
                 await webSocket.CloseAsync(
                     WebSocketCloseStatus.MessageTooBig,
                     "Message size exceeds 1MB limit",
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken);
 
                 throw new InvalidOperationException("Message too large");
             }

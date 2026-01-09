@@ -39,7 +39,7 @@ public sealed class ResourceHandler(
         var currentBalanceResult = await stateRepository.GetResourceAmountAsync(
             playerId.Value, 
             request.Type, 
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
 
         if (!currentBalanceResult.IsSuccess)
         {
@@ -57,7 +57,7 @@ public sealed class ResourceHandler(
             playerId.Value,
             request.Type,
             newBalance,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
 
         if (!updateResult.IsSuccess)
         {
