@@ -22,7 +22,7 @@ public sealed class ResourceHandler(
         
         try
         {
-            request = payload.Deserialize<UpdateResourceRequest>();
+            request = payload.Deserialize<UpdateResourceRequest>(JsonSerializerOptionsProvider.Default);
         }
         catch (JsonException)
         {

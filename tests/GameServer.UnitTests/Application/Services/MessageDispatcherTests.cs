@@ -4,6 +4,8 @@ using GameServer.Application.Services;
 using GameServer.Application.Common.Interfaces;
 using GameServer.Application.Common;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GameServer.UnitTests.Application.Services;
 
@@ -19,7 +21,8 @@ public class MessageDispatcherTests
         _serviceProvider = new TestServiceProvider();
         _mockLoginHandler = new Mock<IMessageHandler>();
         _mockWebSocket = new Mock<WebSocket>();
-        _dispatcher = new MessageDispatcher(_serviceProvider);
+        _mockWebSocket.Setup(ws => ws.State).Returns(WebSocketState.Open);
+        _dispatcher = new MessageDispatcher(_serviceProvider, NullLogger<MessageDispatcher>.Instance);
     }
 
     [Fact]

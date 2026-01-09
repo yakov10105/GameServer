@@ -1,4 +1,5 @@
 using GameServer.Api.Configuration;
+using GameServer.Infrastructure.Persistence.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,12 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<GameDbContext>();
+    dbContext.Database.EnsureCreated();
+}
 
 var startTime = DateTimeOffset.UtcNow;
 

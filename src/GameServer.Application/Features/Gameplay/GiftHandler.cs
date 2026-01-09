@@ -24,7 +24,7 @@ public sealed class GiftHandler(
         
         try
         {
-            request = payload.Deserialize<SendGiftRequest>();
+            request = payload.Deserialize<SendGiftRequest>(JsonSerializerOptionsProvider.Default);
         }
         catch (JsonException)
         {
@@ -122,7 +122,16 @@ public sealed class GiftHandler(
 
         if (sessionManager.IsPlayerOnline(request.FriendPlayerId))
         {
-            var giftEvent = new GiftReceivedEvent(senderId.Value, request.Type, request.Value);
+            var giftEvent = new 
+            { 
+                type = "GIFT_RECEIVED", 
+                payload = new 
+                { 
+                    fromPlayerId = senderId.Value, 
+                    resourceType = request.Type, 
+                    amount = request.Value 
+                } 
+            };
             var messageBytes = JsonSerializer.SerializeToUtf8Bytes(giftEvent, JsonSerializerOptionsProvider.Default);
             
             await gameNotifier.SendToPlayerAsync(

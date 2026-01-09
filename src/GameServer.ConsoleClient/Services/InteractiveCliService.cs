@@ -66,6 +66,16 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
                 gift.FromPlayerId, gift.ResourceType, gift.Amount);
         };
 
+        client.OnFriendAdded += friendAdded =>
+        {
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine($"👋 New friend! Player {friendAdded.ByPlayerId} added you as a friend.");
+            Console.ResetColor();
+            Console.Write("> ");
+            logger.LogInformation("Friend added by: PlayerId={PlayerId}", friendAdded.ByPlayerId);
+        };
+
         client.OnError += error =>
         {
             Console.WriteLine();
@@ -118,6 +128,10 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
                         await HandleSendGift(parts);
                         break;
 
+                    case "addfriend" or "friend":
+                        await HandleAddFriend(parts);
+                        break;
+
                     case "help":
                         PrintHelp();
                         break;
@@ -144,14 +158,8 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
 
     private async Task HandleLogin(string[] parts)
     {
-        if (parts.Length < 2)
-        {
-            Console.WriteLine("Usage: login <device-id>");
-            Console.WriteLine("Example: login my-device-123");
-            return;
-        }
-
-        var deviceId = parts[1];
+        var deviceId = parts.Length >= 2 ? parts[1] : Guid.NewGuid().ToString();
+        
         Console.WriteLine($"Logging in with DeviceId: {deviceId}...");
         logger.LogInformation("Sending login request: DeviceId={DeviceId}", deviceId);
         await client.SendAsync(new LoginRequest(deviceId));
@@ -222,6 +230,26 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
         await client.SendAsync(new SendGiftRequest(friendPlayerId, resourceType, amount));
     }
 
+    private async Task HandleAddFriend(string[] parts)
+    {
+        if (parts.Length < 2)
+        {
+            Console.WriteLine("Usage: addfriend <friend-player-id>");
+            Console.WriteLine("Example: addfriend 550e8400-e29b-41d4-a716-446655440000");
+            return;
+        }
+
+        if (!Guid.TryParse(parts[1], out var friendPlayerId))
+        {
+            Console.WriteLine("Invalid friend player ID. Must be a valid GUID.");
+            return;
+        }
+
+        Console.WriteLine($"Adding friend {friendPlayerId}...");
+        logger.LogInformation("Sending add friend: FriendId={FriendId}", friendPlayerId);
+        await client.SendAsync(new AddFriendRequest(friendPlayerId));
+    }
+
     private static void PrintBanner(bool verboseMode)
     {
         Console.WriteLine("╔════════════════════════════════════════════╗");
@@ -240,8 +268,9 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
     {
         Console.WriteLine();
         Console.WriteLine("Available commands:");
-        Console.WriteLine("  login <device-id>                        - Login with device ID");
+        Console.WriteLine("  login [device-id]                        - Login (auto-generates ID if omitted)");
         Console.WriteLine("  balance <type> <value>                   - Update resource (type: 0=Coins, 1=Rolls)");
+        Console.WriteLine("  addfriend <player-id>                    - Add a player as friend");
         Console.WriteLine("  gift <friend-id> <type> <amount>         - Send gift to friend");
         Console.WriteLine("  help                                     - Show this help message");
         Console.WriteLine("  quit                                     - Disconnect and exit");
