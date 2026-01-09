@@ -27,7 +27,7 @@ public class ResourceHandlerTests
     public async Task HandleAsync_ShouldDerivePlayerIdFromSocket_NotPayload()
     {
         var playerId = Guid.NewGuid();
-        var payload = CreatePayload(new { type = ResourceType.Coins, value = 100 });
+        var payload = CreatePayload(new { Type = ResourceType.Coins, Value = 100L });
         WebSocket? capturedSocket = null;
 
         _mockSessionManager.Setup(s => s.GetPlayerId(It.IsAny<WebSocket>()))
@@ -49,7 +49,7 @@ public class ResourceHandlerTests
     [Fact]
     public async Task HandleAsync_WhenSocketNotRegistered_ShouldReturnUnauthorizedError()
     {
-        var payload = CreatePayload(new { type = ResourceType.Coins, value = 100 });
+        var payload = CreatePayload(new { Type = ResourceType.Coins, Value = 100L });
 
         _mockSessionManager.Setup(s => s.GetPlayerId(It.IsAny<WebSocket>()))
             .Returns((Guid?)null);
@@ -68,7 +68,7 @@ public class ResourceHandlerTests
         var initialBalance = 1000L;
         var addValue = 500L;
         var expectedNewBalance = initialBalance + addValue;
-        var payload = CreatePayload(new { type = ResourceType.Coins, value = addValue });
+        var payload = CreatePayload(new { Type = ResourceType.Coins, Value = addValue });
 
         _mockSessionManager.Setup(s => s.GetPlayerId(It.IsAny<WebSocket>()))
             .Returns(playerId);
@@ -92,7 +92,7 @@ public class ResourceHandlerTests
         var initialBalance = 1000L;
         var deductValue = -200L;
         var expectedNewBalance = initialBalance + deductValue;
-        var payload = CreatePayload(new { type = ResourceType.Coins, value = deductValue });
+        var payload = CreatePayload(new { Type = ResourceType.Coins, Value = deductValue });
 
         _mockSessionManager.Setup(s => s.GetPlayerId(It.IsAny<WebSocket>()))
             .Returns(playerId);
@@ -115,7 +115,7 @@ public class ResourceHandlerTests
         var playerId = Guid.NewGuid();
         var initialBalance = 100L;
         var deductValue = -500L;
-        var payload = CreatePayload(new { type = ResourceType.Coins, value = deductValue });
+        var payload = CreatePayload(new { Type = ResourceType.Coins, Value = deductValue });
 
         _mockSessionManager.Setup(s => s.GetPlayerId(It.IsAny<WebSocket>()))
             .Returns(playerId);
@@ -134,7 +134,7 @@ public class ResourceHandlerTests
     public async Task HandleAsync_WithMalformedPayload_ShouldReturnInvalidPayloadError()
     {
         var playerId = Guid.NewGuid();
-        var malformedPayload = JsonDocument.Parse("{ \"invalid\": 123 }").RootElement;
+        var malformedPayload = JsonDocument.Parse("[1, 2, 3]").RootElement;
 
         _mockSessionManager.Setup(s => s.GetPlayerId(It.IsAny<WebSocket>()))
             .Returns(playerId);
@@ -142,6 +142,7 @@ public class ResourceHandlerTests
         var result = await _handler.HandleAsync(_mockWebSocket.Object, malformedPayload, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
+        Assert.Equal("InvalidPayload", result.Error?.Code);
     }
 
     [Theory]
@@ -150,7 +151,7 @@ public class ResourceHandlerTests
     public async Task HandleAsync_WithValidResourceTypes_ShouldSucceed(ResourceType resourceType)
     {
         var playerId = Guid.NewGuid();
-        var payload = CreatePayload(new { type = resourceType, value = 100 });
+        var payload = CreatePayload(new { Type = resourceType, Value = 100L });
 
         _mockSessionManager.Setup(s => s.GetPlayerId(It.IsAny<WebSocket>()))
             .Returns(playerId);
@@ -170,7 +171,7 @@ public class ResourceHandlerTests
     public async Task HandleAsync_WithInvalidResourceType_ShouldReturnError()
     {
         var playerId = Guid.NewGuid();
-        var payload = CreatePayload(new { type = 999, value = 100 });
+        var payload = CreatePayload(new { Type = 999, Value = 100L });
 
         _mockSessionManager.Setup(s => s.GetPlayerId(It.IsAny<WebSocket>()))
             .Returns(playerId);
@@ -185,7 +186,7 @@ public class ResourceHandlerTests
     public async Task HandleAsync_WhenGetResourceFails_ShouldReturnError()
     {
         var playerId = Guid.NewGuid();
-        var payload = CreatePayload(new { type = ResourceType.Coins, value = 100 });
+        var payload = CreatePayload(new { Type = ResourceType.Coins, Value = 100L });
 
         _mockSessionManager.Setup(s => s.GetPlayerId(It.IsAny<WebSocket>()))
             .Returns(playerId);
@@ -203,7 +204,7 @@ public class ResourceHandlerTests
     public async Task HandleAsync_WhenUpdateResourceFails_ShouldReturnError()
     {
         var playerId = Guid.NewGuid();
-        var payload = CreatePayload(new { type = ResourceType.Coins, value = 100 });
+        var payload = CreatePayload(new { Type = ResourceType.Coins, Value = 100L });
 
         _mockSessionManager.Setup(s => s.GetPlayerId(It.IsAny<WebSocket>()))
             .Returns(playerId);
@@ -224,8 +225,8 @@ public class ResourceHandlerTests
     public async Task HandleAsync_ShouldPassCancellationTokenToRepository()
     {
         var playerId = Guid.NewGuid();
-        var payload = CreatePayload(new { type = ResourceType.Coins, value = 100 });
-        var cts = new CancellationTokenSource();
+        var payload = CreatePayload(new { Type = ResourceType.Coins, Value = 100L });
+        using var cts = new CancellationTokenSource();
         CancellationToken capturedToken = default;
 
         _mockSessionManager.Setup(s => s.GetPlayerId(It.IsAny<WebSocket>()))
@@ -247,7 +248,7 @@ public class ResourceHandlerTests
     public async Task HandleAsync_WithZeroBalance_ShouldAllowAddition()
     {
         var playerId = Guid.NewGuid();
-        var payload = CreatePayload(new { type = ResourceType.Rolls, value = 50 });
+        var payload = CreatePayload(new { Type = ResourceType.Rolls, Value = 50L });
 
         _mockSessionManager.Setup(s => s.GetPlayerId(It.IsAny<WebSocket>()))
             .Returns(playerId);
@@ -267,7 +268,7 @@ public class ResourceHandlerTests
     public async Task HandleAsync_DeductExactBalance_ShouldSucceedWithZeroBalance()
     {
         var playerId = Guid.NewGuid();
-        var payload = CreatePayload(new { type = ResourceType.Coins, value = -1000 });
+        var payload = CreatePayload(new { Type = ResourceType.Coins, Value = -1000L });
 
         _mockSessionManager.Setup(s => s.GetPlayerId(It.IsAny<WebSocket>()))
             .Returns(playerId);
