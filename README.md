@@ -4,39 +4,104 @@ A production-grade, distributed-ready game server built with .NET 8 using raw We
 
 ## Architecture
 
+### Clean Architecture Layers
+
+```mermaid
+graph TB
+    subgraph API["🌐 GameServer.Api"]
+        WS[WebSocket Middleware]
+        MD[Message Dispatcher]
+        HC[/health Endpoint]
+    end
+
+    subgraph APP["⚙️ GameServer.Application"]
+        LH[LoginHandler]
+        RH[ResourceHandler]
+        GH[GiftHandler]
+        AH[AddFriendHandler]
+    end
+
+    subgraph INFRA["🔧 GameServer.Infrastructure"]
+        SM[SessionManager<br/>In-Memory]
+        GN[GameNotifier<br/>WebSocket]
+        SR[StateRepository<br/>SQLite/EF Core]
+        SP[SyncProvider<br/>Semaphores]
+    end
+
+    subgraph DOMAIN["📦 GameServer.Domain"]
+        P[Player]
+        R[Resource]
+        F[Friendship]
+        RS[Result&lt;T&gt;]
+    end
+
+    WS --> MD
+    MD --> LH & RH & GH & AH
+    LH & RH & GH & AH --> SM & GN & SR & SP
+    SM & GN & SR --> P & R & F & RS
+
+    style API fill:#4a9eff,color:#fff
+    style APP fill:#50c878,color:#fff
+    style INFRA fill:#ff9f43,color:#fff
+    style DOMAIN fill:#a55eea,color:#fff
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        GameServer.Api                           │
-│  ┌─────────────────┐  ┌──────────────────┐  ┌───────────────┐  │
-│  │ WebSocket       │  │ Message          │  │ /health       │  │
-│  │ Middleware      │──│ Dispatcher       │  │ Endpoint      │  │
-│  └────────┬────────┘  └────────┬─────────┘  └───────────────┘  │
-│           │                    │                                │
-│           ▼                    ▼                                │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │              GameServer.Application                      │   │
-│  │  ┌──────────────┐ ┌────────────────┐ ┌──────────────┐   │   │
-│  │  │ LoginHandler │ │ ResourceHandler│ │ GiftHandler  │   │   │
-│  │  └──────────────┘ └────────────────┘ └──────────────┘   │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│           │                    │                                │
-│           ▼                    ▼                                │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │            GameServer.Infrastructure                     │   │
-│  │  ┌────────────────┐ ┌─────────────┐ ┌────────────────┐  │   │
-│  │  │ SessionManager │ │ GameNotifier│ │ StateRepository│  │   │
-│  │  │ (In-Memory)    │ │ (WebSocket) │ │ (SQLite/EF)    │  │   │
-│  │  └────────────────┘ └─────────────┘ └────────────────┘  │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│           │                                                     │
-│           ▼                                                     │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │              GameServer.Domain                           │   │
-│  │  ┌────────┐ ┌──────────┐ ┌────────────┐ ┌───────────┐   │   │
-│  │  │ Player │ │ Resource │ │ Friendship │ │ Result<T> │   │   │
-│  │  └────────┘ └──────────┘ └────────────┘ └───────────┘   │   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
+
+### Message Flow
+
+```mermaid
+sequenceDiagram
+    participant C as 📱 Client
+    participant WS as WebSocket Middleware
+    participant D as Message Dispatcher
+    participant H as Handler
+    participant DB as SQLite
+    participant N as Notifier
+
+    C->>WS: Connect (ws://...)
+    WS-->>C: Connection Accepted
+
+    C->>WS: {"type": "LOGIN", "payload": {...}}
+    WS->>D: Dispatch Message
+    D->>H: LoginHandler.HandleAsync()
+    H->>DB: CreatePlayer / GetPlayer
+    DB-->>H: Player ID
+    H->>N: SendToPlayerAsync()
+    N-->>C: {"type": "LOGIN_RESPONSE", "payload": {...}}
+
+    Note over C,N: Player is now authenticated
+
+    C->>WS: {"type": "SEND_GIFT", "payload": {...}}
+    WS->>D: Dispatch Message
+    D->>H: GiftHandler.HandleAsync()
+    H->>DB: Transfer Resources (Transaction)
+    H->>N: Notify Recipient
+    N-->>C: 🎁 GIFT_RECEIVED
+```
+
+### Data Model
+
+```mermaid
+erDiagram
+    PLAYER {
+        Guid Id PK
+        string DeviceId UK
+        DateTime LastLogin
+    }
+
+    RESOURCE {
+        Guid PlayerId FK
+        int Type PK
+        long Amount
+    }
+
+    FRIENDSHIP {
+        Guid PlayerId1 PK,FK
+        Guid PlayerId2 PK,FK
+        DateTime CreatedAt
+    }
+
+    PLAYER ||--o{ RESOURCE : has
+    PLAYER ||--o{ FRIENDSHIP : friends
 ```
 
 ## Prerequisites
@@ -116,16 +181,16 @@ All messages use a JSON envelope format:
 
 ### Message Types
 
-| Type               | Direction       | Description                   |
-| ------------------ | --------------- | ----------------------------- |
-| `LOGIN`            | Client → Server | Authenticate with device ID   |
-| `LOGIN_RESPONSE`   | Server → Client | Returns player ID             |
-| `UPDATE_RESOURCES` | Client → Server | Add/deduct coins or rolls     |
-| `ADD_FRIEND`       | Client → Server | Add another player as friend  |
-| `SEND_GIFT`        | Client → Server | Send resources to a friend    |
+| Type               | Direction       | Description                       |
+| ------------------ | --------------- | --------------------------------- |
+| `LOGIN`            | Client → Server | Authenticate with device ID       |
+| `LOGIN_RESPONSE`   | Server → Client | Returns player ID                 |
+| `UPDATE_RESOURCES` | Client → Server | Add/deduct coins or rolls         |
+| `ADD_FRIEND`       | Client → Server | Add another player as friend      |
+| `SEND_GIFT`        | Client → Server | Send resources to a friend        |
 | `FRIEND_ADDED`     | Server → Client | Notification when added as friend |
-| `GIFT_RECEIVED`    | Server → Client | Notification of received gift |
-| `ERROR`            | Server → Client | Error response                |
+| `GIFT_RECEIVED`    | Server → Client | Notification of received gift     |
+| `ERROR`            | Server → Client | Error response                    |
 
 ### Example: Login
 
@@ -219,19 +284,42 @@ docker-compose build --no-cache
 
 ## Project Structure
 
+```mermaid
+graph LR
+    subgraph src[📁 src]
+        API[GameServer.Api]
+        APP[GameServer.Application]
+        INFRA[GameServer.Infrastructure]
+        DOM[GameServer.Domain]
+        CLI[GameServer.ConsoleClient]
+    end
+
+    subgraph tests[📁 tests]
+        UT[GameServer.UnitTests]
+    end
+
+    API --> APP
+    API --> INFRA
+    APP --> DOM
+    INFRA --> DOM
+    CLI -.-> API
+    UT -.-> API & APP & INFRA & DOM
+
+    style DOM fill:#a55eea,color:#fff
+    style APP fill:#50c878,color:#fff
+    style INFRA fill:#ff9f43,color:#fff
+    style API fill:#4a9eff,color:#fff
+    style CLI fill:#fd79a8,color:#fff
 ```
-GameServer/
-├── src/
-│   ├── GameServer.Domain/          # Entities, interfaces, Result<T>
-│   ├── GameServer.Application/     # Handlers, business logic
-│   ├── GameServer.Infrastructure/  # EF Core, session management
-│   ├── GameServer.Api/             # WebSocket middleware, entry point
-│   └── GameServer.ConsoleClient/   # Interactive test client
-├── tests/
-│   └── GameServer.UnitTests/       # xUnit + Moq tests
-├── docker-compose.yml
-└── Dockerfile
-```
+
+| Project                     | Description                                             |
+| --------------------------- | ------------------------------------------------------- |
+| `GameServer.Domain`         | Entities, interfaces, `Result<T>`, enums                |
+| `GameServer.Application`    | Message handlers, business logic, DTOs                  |
+| `GameServer.Infrastructure` | EF Core, SQLite, session management, WebSocket notifier |
+| `GameServer.Api`            | WebSocket middleware, DI configuration, entry point     |
+| `GameServer.ConsoleClient`  | Interactive CLI client for testing                      |
+| `GameServer.UnitTests`      | xUnit + Moq unit tests                                  |
 
 ## Key Features
 
