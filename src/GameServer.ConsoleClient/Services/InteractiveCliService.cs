@@ -1,0 +1,263 @@
+using GameServer.ConsoleClient.Clients;
+using GameServer.ConsoleClient.Model.Request;
+using Microsoft.Extensions.Logging;
+
+namespace GameServer.ConsoleClient.Services;
+
+public sealed class InteractiveCliService(GameClient client, ILogger<InteractiveCliService> logger)
+{
+    private const string DefaultServerUri = "ws://localhost:5000/ws";
+
+    public async Task<int> RunAsync(string[] args, bool verboseMode = false)
+    {
+        var serverUri = ResolveServerUri(args);
+
+        SetupEventHandlers();
+
+        PrintBanner(verboseMode);
+
+        try
+        {
+            Console.Write($"Connecting to {serverUri}... ");
+            var connected = await client.ConnectAsync(serverUri);
+
+            if (!connected)
+            {
+                Console.WriteLine("FAILED");
+                logger.LogError("Could not connect to server at {ServerUri}", serverUri);
+                return 1;
+            }
+
+            Console.WriteLine("OK");
+            client.StartListening();
+
+            await RunCommandLoop();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"Error: {ex.Message}");
+            logger.LogError(ex, "Fatal error in CLI");
+            return 1;
+        }
+
+        return 0;
+    }
+
+    private void SetupEventHandlers()
+    {
+        client.OnLoginResponse += response =>
+        {
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"✓ Logged in! PlayerId: {response.PlayerId}");
+            Console.ResetColor();
+            Console.Write("> ");
+            logger.LogInformation("Login successful: PlayerId={PlayerId}", response.PlayerId);
+        };
+
+        client.OnGiftReceived += gift =>
+        {
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"🎁 Gift received! From: {gift.FromPlayerId}, Type: {gift.ResourceType}, Amount: {gift.Amount}");
+            Console.ResetColor();
+            Console.Write("> ");
+            logger.LogInformation("Gift received: From={FromPlayerId}, Type={ResourceType}, Amount={Amount}", 
+                gift.FromPlayerId, gift.ResourceType, gift.Amount);
+        };
+
+        client.OnError += error =>
+        {
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"✗ Error: [{error.Code}] {error.Message}");
+            Console.ResetColor();
+            Console.Write("> ");
+            logger.LogWarning("Server error: Code={Code}, Message={Message}", error.Code, error.Message);
+        };
+
+        client.OnDisconnected += (status, description) =>
+        {
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine($"Disconnected: {status} - {description}");
+            Console.ResetColor();
+        };
+    }
+
+    private async Task RunCommandLoop()
+    {
+        PrintHelp();
+
+        while (client.IsConnected)
+        {
+            Console.Write("> ");
+            var input = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(input))
+                continue;
+
+            var parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var command = parts[0].ToLowerInvariant();
+
+            logger.LogDebug("Command received: {Command}", command);
+
+            try
+            {
+                switch (command)
+                {
+                    case "login":
+                        await HandleLogin(parts);
+                        break;
+
+                    case "balance" or "update":
+                        await HandleUpdateResource(parts);
+                        break;
+
+                    case "gift":
+                        await HandleSendGift(parts);
+                        break;
+
+                    case "help":
+                        PrintHelp();
+                        break;
+
+                    case "quit" or "exit":
+                        Console.WriteLine("Disconnecting...");
+                        await client.DisconnectAsync();
+                        return;
+
+                    default:
+                        Console.WriteLine($"Unknown command: {command}. Type 'help' for available commands.");
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Command failed: {ex.Message}");
+                Console.ResetColor();
+                logger.LogError(ex, "Command '{Command}' failed", command);
+            }
+        }
+    }
+
+    private async Task HandleLogin(string[] parts)
+    {
+        if (parts.Length < 2)
+        {
+            Console.WriteLine("Usage: login <device-id>");
+            Console.WriteLine("Example: login my-device-123");
+            return;
+        }
+
+        var deviceId = parts[1];
+        Console.WriteLine($"Logging in with DeviceId: {deviceId}...");
+        logger.LogInformation("Sending login request: DeviceId={DeviceId}", deviceId);
+        await client.SendAsync(new LoginRequest(deviceId));
+    }
+
+    private async Task HandleUpdateResource(string[] parts)
+    {
+        if (parts.Length < 3)
+        {
+            Console.WriteLine("Usage: balance <type> <value>");
+            Console.WriteLine("Types: 0 = Coins, 1 = Rolls");
+            Console.WriteLine("Example: balance 0 100    (add 100 coins)");
+            Console.WriteLine("Example: balance 0 -50   (deduct 50 coins)");
+            return;
+        }
+
+        if (!int.TryParse(parts[1], out var resourceType) || resourceType < 0 || resourceType > 1)
+        {
+            Console.WriteLine("Invalid resource type. Use 0 for Coins, 1 for Rolls.");
+            return;
+        }
+
+        if (!long.TryParse(parts[2], out var value))
+        {
+            Console.WriteLine("Invalid value. Must be a number.");
+            return;
+        }
+
+        var typeName = resourceType == 0 ? "Coins" : "Rolls";
+        var action = value >= 0 ? "Adding" : "Deducting";
+        Console.WriteLine($"{action} {Math.Abs(value)} {typeName}...");
+        logger.LogInformation("Sending update resource: Type={ResourceType}, Value={Value}", typeName, value);
+        await client.SendAsync(new UpdateResourceRequest(resourceType, value));
+    }
+
+    private async Task HandleSendGift(string[] parts)
+    {
+        if (parts.Length < 4)
+        {
+            Console.WriteLine("Usage: gift <friend-player-id> <type> <amount>");
+            Console.WriteLine("Types: 0 = Coins, 1 = Rolls");
+            Console.WriteLine("Example: gift 550e8400-e29b-41d4-a716-446655440000 0 100");
+            return;
+        }
+
+        if (!Guid.TryParse(parts[1], out var friendPlayerId))
+        {
+            Console.WriteLine("Invalid friend player ID. Must be a valid GUID.");
+            return;
+        }
+
+        if (!int.TryParse(parts[2], out var resourceType) || resourceType < 0 || resourceType > 1)
+        {
+            Console.WriteLine("Invalid resource type. Use 0 for Coins, 1 for Rolls.");
+            return;
+        }
+
+        if (!long.TryParse(parts[3], out var amount) || amount <= 0)
+        {
+            Console.WriteLine("Invalid amount. Must be a positive number.");
+            return;
+        }
+
+        var typeName = resourceType == 0 ? "Coins" : "Rolls";
+        Console.WriteLine($"Sending {amount} {typeName} to {friendPlayerId}...");
+        logger.LogInformation("Sending gift: FriendId={FriendId}, Type={ResourceType}, Amount={Amount}", 
+            friendPlayerId, typeName, amount);
+        await client.SendAsync(new SendGiftRequest(friendPlayerId, resourceType, amount));
+    }
+
+    private static void PrintBanner(bool verboseMode)
+    {
+        Console.WriteLine("╔════════════════════════════════════════════╗");
+        Console.WriteLine("║         Game Server Console Client         ║");
+        Console.WriteLine("╚════════════════════════════════════════════╝");
+        if (verboseMode)
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("             [VERBOSE MODE ENABLED]           ");
+            Console.ResetColor();
+        }
+        Console.WriteLine();
+    }
+
+    private static void PrintHelp()
+    {
+        Console.WriteLine();
+        Console.WriteLine("Available commands:");
+        Console.WriteLine("  login <device-id>                        - Login with device ID");
+        Console.WriteLine("  balance <type> <value>                   - Update resource (type: 0=Coins, 1=Rolls)");
+        Console.WriteLine("  gift <friend-id> <type> <amount>         - Send gift to friend");
+        Console.WriteLine("  help                                     - Show this help message");
+        Console.WriteLine("  quit                                     - Disconnect and exit");
+        Console.WriteLine();
+    }
+
+    private static Uri ResolveServerUri(string[] args)
+    {
+        if (args.Length > 0)
+            return new Uri(args[0]);
+
+        var envUri = Environment.GetEnvironmentVariable("GAMESERVER_URI");
+        if (!string.IsNullOrWhiteSpace(envUri))
+            return new Uri(envUri);
+
+        return new Uri(DefaultServerUri);
+    }
+}

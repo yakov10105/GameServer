@@ -44,6 +44,6 @@ public sealed class InMemorySessionManager : ISessionManager
         return _playerToSocket.ContainsKey(playerId);
     }
 
-    public IReadOnlyCollection<Guid> GetAllPlayerIds() => _playerToSocket.Keys.ToArray();
+    public IReadOnlyCollection<Guid> GetAllPlayerIds() => [.. _playerToSocket.Keys];
 }
 
