@@ -1,8 +1,5 @@
-using System.Net.WebSockets;
 using System.Text.Json;
-using Moq;
 using GameServer.Application.Features.Auth;
-using GameServer.Domain.Common;
 using GameServer.Domain.Interfaces;
 
 namespace GameServer.UnitTests.Application.Features.Auth;
@@ -11,6 +8,7 @@ public class LoginHandlerTests
 {
     private readonly Mock<IStateRepository> _mockRepository;
     private readonly Mock<ISessionManager> _mockSessionManager;
+    private readonly Mock<IGameNotifier> _mockNotifier;
     private readonly Mock<WebSocket> _mockWebSocket;
     private readonly LoginHandler _handler;
 
@@ -18,8 +16,9 @@ public class LoginHandlerTests
     {
         _mockRepository = new Mock<IStateRepository>();
         _mockSessionManager = new Mock<ISessionManager>();
+        _mockNotifier = new Mock<IGameNotifier>();
         _mockWebSocket = new Mock<WebSocket>();
-        _handler = new LoginHandler(_mockRepository.Object, _mockSessionManager.Object);
+        _handler = new LoginHandler(_mockRepository.Object, _mockSessionManager.Object, _mockNotifier.Object);
     }
 
     [Fact]

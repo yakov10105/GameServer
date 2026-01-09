@@ -3,7 +3,7 @@ WORKDIR /src
 
 COPY Directory.Build.props .
 COPY Directory.Packages.props .
-COPY GameServer.sln .
+COPY GameServer.slnx .
 
 COPY src/GameServer.Domain/GameServer.Domain.csproj src/GameServer.Domain/
 COPY src/GameServer.ConsoleClient/GameServer.ConsoleClient.csproj src/GameServer.ConsoleClient/

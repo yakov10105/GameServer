@@ -1,11 +1,11 @@
 using GameServer.Domain.Interfaces;
-using System.Text.Json;
 
 namespace GameServer.Application.Features.Auth;
 
 public sealed class LoginHandler(
     IStateRepository stateRepository,
-    ISessionManager sessionManager) : IMessageHandler
+    ISessionManager sessionManager,
+    IGameNotifier gameNotifier) : IMessageHandler
 {
     public async ValueTask<Result> HandleAsync(
         WebSocket webSocket,
@@ -16,7 +16,7 @@ public sealed class LoginHandler(
         
         try
         {
-            request = payload.Deserialize<LoginRequest>();
+            request = payload.Deserialize<LoginRequest>(JsonSerializerOptionsProvider.Default);
         }
         catch (JsonException)
         {
@@ -54,6 +54,10 @@ public sealed class LoginHandler(
         }
 
         sessionManager.RegisterSession(playerId, webSocket);
+
+        var response = new { type = "LOGIN_RESPONSE", payload = new { playerId } };
+        var messageBytes = JsonSerializer.SerializeToUtf8Bytes(response, JsonSerializerOptionsProvider.Default);
+        await gameNotifier.SendToPlayerAsync(playerId, messageBytes, cancellationToken);
 
         return Result.Success();
     }

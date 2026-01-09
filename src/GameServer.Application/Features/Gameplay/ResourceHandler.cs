@@ -1,6 +1,4 @@
-using GameServer.Domain.Enums;
 using GameServer.Domain.Interfaces;
-using System.Text.Json;
 
 namespace GameServer.Application.Features.Gameplay;
 
@@ -24,7 +22,7 @@ public sealed class ResourceHandler(
         
         try
         {
-            request = payload.Deserialize<UpdateResourceRequest>();
+            request = payload.Deserialize<UpdateResourceRequest>(JsonSerializerOptionsProvider.Default);
         }
         catch (JsonException)
         {

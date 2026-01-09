@@ -88,20 +88,20 @@ dotnet test
 
 ### API Server
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `ASPNETCORE_ENVIRONMENT` | Environment mode | `Production` |
-| `ASPNETCORE_URLS` | Listen URL | `http://+:8080` |
-| `GameServer__MaxConnections` | Max concurrent connections | `1000` |
-| `GameServer__LatencyThresholdMs` | Slow message threshold | `50` |
-| `Serilog__MinimumLevel__Default` | Log level | `Information` |
+| Variable                         | Description                | Default         |
+| -------------------------------- | -------------------------- | --------------- |
+| `ASPNETCORE_ENVIRONMENT`         | Environment mode           | `Production`    |
+| `ASPNETCORE_URLS`                | Listen URL                 | `http://+:8080` |
+| `GameServer__MaxConnections`     | Max concurrent connections | `1000`          |
+| `GameServer__LatencyThresholdMs` | Slow message threshold     | `50`            |
+| `Serilog__MinimumLevel__Default` | Log level                  | `Information`   |
 
 ### Console Client
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `GAMESERVER_URI` | WebSocket server URL | `ws://localhost:5000/ws` |
-| `GAMESERVER_LOG_LEVEL` | Log level (DEBUG/INFO/WARN/ERROR) | `Information` |
+| Variable               | Description                       | Default                  |
+| ---------------------- | --------------------------------- | ------------------------ |
+| `GAMESERVER_URI`       | WebSocket server URL              | `ws://localhost:5000/ws` |
+| `GAMESERVER_LOG_LEVEL` | Log level (DEBUG/INFO/WARN/ERROR) | `Information`            |
 
 ## Protocol
 
@@ -116,18 +116,21 @@ All messages use a JSON envelope format:
 
 ### Message Types
 
-| Type | Direction | Description |
-|------|-----------|-------------|
-| `LOGIN` | Client → Server | Authenticate with device ID |
-| `LOGIN_RESPONSE` | Server → Client | Returns player ID |
-| `UPDATE_RESOURCES` | Client → Server | Add/deduct coins or rolls |
-| `SEND_GIFT` | Client → Server | Send resources to a friend |
-| `GIFT_RECEIVED` | Server → Client | Notification of received gift |
-| `ERROR` | Server → Client | Error response |
+| Type               | Direction       | Description                   |
+| ------------------ | --------------- | ----------------------------- |
+| `LOGIN`            | Client → Server | Authenticate with device ID   |
+| `LOGIN_RESPONSE`   | Server → Client | Returns player ID             |
+| `UPDATE_RESOURCES` | Client → Server | Add/deduct coins or rolls     |
+| `ADD_FRIEND`       | Client → Server | Add another player as friend  |
+| `SEND_GIFT`        | Client → Server | Send resources to a friend    |
+| `FRIEND_ADDED`     | Server → Client | Notification when added as friend |
+| `GIFT_RECEIVED`    | Server → Client | Notification of received gift |
+| `ERROR`            | Server → Client | Error response                |
 
 ### Example: Login
 
 **Request:**
+
 ```json
 {
   "type": "LOGIN",
@@ -136,6 +139,7 @@ All messages use a JSON envelope format:
 ```
 
 **Response:**
+
 ```json
 {
   "type": "LOGIN_RESPONSE",
@@ -146,12 +150,50 @@ All messages use a JSON envelope format:
 ## Client Commands
 
 ```
-login <device-id>              Login with device ID
+login [device-id]              Login (auto-generates ID if omitted)
 balance <type> <value>         Update resource (0=Coins, 1=Rolls)
+addfriend <player-id>          Add a player as friend
 gift <friend-id> <type> <amt>  Send gift to friend
 help                           Show commands
 quit                           Disconnect and exit
 ```
+
+## Testing Gift Flow
+
+To test the complete gift flow between two players:
+
+```bash
+# Terminal 1: Start the API server
+dotnet run --project src/GameServer.Api
+
+# Terminal 2: Client A
+dotnet run --project src/GameServer.ConsoleClient
+> login
+Logging in with DeviceId: aaaa-1111-2222-3333-444444444444...
+✓ Logged in! PlayerId: 11111111-aaaa-bbbb-cccc-dddddddddddd
+
+# Terminal 3: Client B
+dotnet run --project src/GameServer.ConsoleClient
+> login
+Logging in with DeviceId: bbbb-5555-6666-7777-888888888888...
+✓ Logged in! PlayerId: 22222222-eeee-ffff-0000-111111111111
+
+# Client A: Add coins to have something to gift
+> balance 0 500
+Adding 500 Coins...
+
+# Client A: Add Client B as friend (copy B's PlayerId)
+> addfriend 22222222-eeee-ffff-0000-111111111111
+
+# Client A: Send gift to Client B
+> gift 22222222-eeee-ffff-0000-111111111111 0 100
+Sending 100 Coins to 22222222-eeee-ffff-0000-111111111111...
+
+# Client B should see:
+🎁 Gift received! From: 11111111-aaaa-bbbb-cccc-dddddddddddd, Type: Coins, Amount: 100
+```
+
+**Important:** Players must be friends before sending gifts!
 
 ## Docker Commands
 
@@ -204,4 +246,3 @@ GameServer/
 ## License
 
 MIT
-

@@ -1,4 +1,3 @@
-using System.Net.WebSockets;
 using GameServer.ConsoleClient.Clients;
 using GameServer.ConsoleClient.Model.Request;
 using Microsoft.Extensions.Logging.Abstractions;

@@ -1,5 +1,4 @@
 using GameServer.Domain.Entities;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace GameServer.Infrastructure.Persistence.Configurations;
 
