@@ -1,6 +1,7 @@
 using System.Text.Json;
 using GameServer.Application.Features.Gameplay;
 using GameServer.Domain.Interfaces;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GameServer.UnitTests.Application.Features.Gameplay;
 
@@ -31,7 +32,8 @@ public class GiftHandlerTests
             _mockRepository.Object,
             _mockSessionManager.Object,
             _mockSynchronizationProvider.Object,
-            _mockGameNotifier.Object);
+            _mockGameNotifier.Object,
+            NullLogger<GiftHandler>.Instance);
     }
 
     [Fact]

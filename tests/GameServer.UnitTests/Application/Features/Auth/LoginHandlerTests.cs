@@ -1,6 +1,7 @@
 using System.Text.Json;
 using GameServer.Application.Features.Auth;
 using GameServer.Domain.Interfaces;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GameServer.UnitTests.Application.Features.Auth;
 
@@ -18,7 +19,11 @@ public class LoginHandlerTests
         _mockSessionManager = new Mock<ISessionManager>();
         _mockNotifier = new Mock<IGameNotifier>();
         _mockWebSocket = new Mock<WebSocket>();
-        _handler = new LoginHandler(_mockRepository.Object, _mockSessionManager.Object, _mockNotifier.Object);
+        _handler = new LoginHandler(
+            _mockRepository.Object, 
+            _mockSessionManager.Object, 
+            _mockNotifier.Object,
+            NullLogger<LoginHandler>.Instance);
     }
 
     [Fact]

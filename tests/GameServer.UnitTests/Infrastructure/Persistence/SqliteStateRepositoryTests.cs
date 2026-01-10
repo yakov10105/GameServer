@@ -1,6 +1,7 @@
 using GameServer.Infrastructure.Persistence.Context;
 using GameServer.Infrastructure.Persistence.Repositories;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GameServer.UnitTests.Infrastructure.Persistence;
 
@@ -21,7 +22,7 @@ public sealed class SqliteStateRepositoryTests : IDisposable
 
         _context = new GameDbContext(options);
         _context.Database.EnsureCreated();
-        _repository = new SqliteStateRepository(_context);
+        _repository = new SqliteStateRepository(_context, NullLogger<SqliteStateRepository>.Instance);
     }
 
     [Fact]

@@ -1,9 +1,5 @@
 namespace GameServer.Api.Middleware;
 
-/// <summary>
-/// Handles raw WebSocket connections with connection limiting and latency monitoring.
-/// Capacity: 1000 concurrent connections. Messages exceeding 1MB are rejected.
-/// </summary>
 public sealed class WebSocketMiddleware(
     RequestDelegate next,
     ILogger<WebSocketMiddleware> logger,
@@ -45,11 +41,11 @@ public sealed class WebSocketMiddleware(
         }
         catch (OperationCanceledException)
         {
-            logger.Information("Client disconnected");
+            logger.LogInformation("Client disconnected");
         }
         catch (WebSocketException) when (webSocket?.State != WebSocketState.Open)
         {
-            logger.Information("Client connection closed abruptly");
+            logger.LogInformation("Client connection closed abruptly");
         }
         catch (Exception ex)
         {

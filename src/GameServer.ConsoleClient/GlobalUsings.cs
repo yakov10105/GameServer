@@ -1,8 +1,14 @@
-global using System;
 global using System.Net.WebSockets;
 global using System.Text.Json;
-global using System.Threading;
-global using System.Threading.Tasks;
 global using GameServer.ConsoleClient.Model;
 global using System.Text.Json.Serialization;
 global using GameServer.ConsoleClient.Model.Request;
+global using GameServer.ConsoleClient.Model.Events;
+global using Microsoft.Extensions.Logging;
+global using System.Buffers;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Hosting;
+global using Serilog;
+global using Serilog.Events;
+global using GameServer.ConsoleClient.Clients;
+global using GameServer.ConsoleClient.Services;

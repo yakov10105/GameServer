@@ -5,7 +5,8 @@ namespace GameServer.Application.Features.Auth;
 public sealed class LoginHandler(
     IStateRepository stateRepository,
     ISessionManager sessionManager,
-    IGameNotifier gameNotifier) : IMessageHandler
+    IGameNotifier gameNotifier,
+    ILogger<LoginHandler> logger) : IMessageHandler
 {
     public async ValueTask<Result> HandleAsync(
         WebSocket webSocket,
@@ -50,6 +51,7 @@ public sealed class LoginHandler(
 
         if (sessionManager.IsPlayerOnline(playerId))
         {
+            logger.DuplicateLoginAttempt(playerId);
             return Result.Failure(new Error("AlreadyOnline", "Player is already connected from another device"));
         }
 
@@ -59,6 +61,7 @@ public sealed class LoginHandler(
         var messageBytes = JsonSerializer.SerializeToUtf8Bytes(response, JsonSerializerOptionsProvider.Default);
         await gameNotifier.SendToPlayerAsync(playerId, messageBytes, cancellationToken);
 
+        logger.PlayerLoggedIn(playerId, request.DeviceId);
         return Result.Success();
     }
 }

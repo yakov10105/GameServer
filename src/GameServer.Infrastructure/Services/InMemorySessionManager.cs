@@ -1,24 +1,17 @@
-
 namespace GameServer.Infrastructure.Services;
 
-public sealed class InMemorySessionManager : ISessionManager
+public sealed class InMemorySessionManager(ILogger<InMemorySessionManager> logger) : ISessionManager
 {
-    private readonly ConcurrentDictionary<Guid, WebSocket> _playerToSocket;
-    private readonly ConcurrentDictionary<WebSocket, Guid> _socketToPlayer;
-
-    public InMemorySessionManager()
-    {
-        var concurrencyLevel = Environment.ProcessorCount * 2;
-        var initialCapacity = 1000;
-        
-        _playerToSocket = new ConcurrentDictionary<Guid, WebSocket>(concurrencyLevel, initialCapacity);
-        _socketToPlayer = new ConcurrentDictionary<WebSocket, Guid>(concurrencyLevel, initialCapacity);
-    }
+    private readonly ConcurrentDictionary<Guid, WebSocket> _playerToSocket = new(
+        Environment.ProcessorCount * 2, 1000);
+    private readonly ConcurrentDictionary<WebSocket, Guid> _socketToPlayer = new(
+        Environment.ProcessorCount * 2, 1000);
 
     public void RegisterSession(Guid playerId, WebSocket webSocket)
     {
         _playerToSocket[playerId] = webSocket;
         _socketToPlayer[webSocket] = playerId;
+        logger.SessionRegistered(playerId);
     }
 
     public void RemoveSession(Guid playerId)
@@ -26,6 +19,7 @@ public sealed class InMemorySessionManager : ISessionManager
         if (_playerToSocket.TryRemove(playerId, out var webSocket))
         {
             _socketToPlayer.TryRemove(webSocket, out _);
+            logger.SessionRemoved(playerId);
         }
     }
 

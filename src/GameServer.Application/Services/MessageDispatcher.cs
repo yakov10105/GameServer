@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-
 namespace GameServer.Application.Services;
 
 public sealed class MessageDispatcher(

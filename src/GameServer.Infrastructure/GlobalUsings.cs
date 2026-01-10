@@ -8,8 +8,10 @@ global using System.Threading.Tasks;
 
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using Microsoft.Extensions.Logging;
 
 global using GameServer.Domain.Common;
 global using GameServer.Domain.Enums;
 global using GameServer.Domain.Interfaces;
+global using GameServer.Infrastructure.Logging;
 

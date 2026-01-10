@@ -1,10 +1,9 @@
-using GameServer.Domain.Interfaces;
-
 namespace GameServer.Application.Features.Gameplay;
 
 public sealed class ResourceHandler(
     IStateRepository stateRepository,
-    ISessionManager sessionManager) : IMessageHandler
+    ISessionManager sessionManager,
+    ILogger<ResourceHandler> logger) : IMessageHandler
 {
     public async ValueTask<Result> HandleAsync(
         WebSocket webSocket,
@@ -44,11 +43,13 @@ public sealed class ResourceHandler(
             return Result.Failure(currentBalanceResult.Error ?? new Error("GetResourceFailed", "Failed to get current balance"));
         }
 
-        var newBalance = currentBalanceResult.Value + request.Value;
+        var oldBalance = currentBalanceResult.Value;
+        var newBalance = oldBalance + request.Value;
 
         if (newBalance < 0)
         {
-            return Result.Failure(new Error("InsufficientFunds", $"Insufficient {request.Type}. Current: {currentBalanceResult.Value}, Requested: {request.Value}"));
+            logger.InsufficientFunds(playerId.Value, request.Type, oldBalance, -request.Value);
+            return Result.Failure(new Error("InsufficientFunds", $"Insufficient {request.Type}. Current: {oldBalance}, Requested: {request.Value}"));
         }
 
         var updateResult = await stateRepository.UpdateResourceAsync(
@@ -62,6 +63,7 @@ public sealed class ResourceHandler(
             return Result.Failure(updateResult.Error ?? new Error("UpdateResourceFailed", "Failed to update resource"));
         }
 
+        logger.ResourceUpdated(playerId.Value, request.Type, oldBalance, newBalance);
         return Result.Success();
     }
 }

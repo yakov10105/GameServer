@@ -1,12 +1,11 @@
-using GameServer.Domain.Interfaces;
-
 namespace GameServer.Application.Features.Gameplay;
 
 public sealed class GiftHandler(
     IStateRepository stateRepository,
     ISessionManager sessionManager,
     ISynchronizationProvider synchronizationProvider,
-    IGameNotifier gameNotifier) : IMessageHandler
+    IGameNotifier gameNotifier,
+    ILogger<GiftHandler> logger) : IMessageHandler
 {
     public async ValueTask<Result> HandleAsync(
         WebSocket webSocket,
@@ -55,6 +54,7 @@ public sealed class GiftHandler(
 
         if (!friendsResult.Value.Contains(request.FriendPlayerId))
         {
+            logger.GiftToNonFriend(senderId.Value, request.FriendPlayerId);
             return Result.Failure(new Error("NotFriends", "You can only send gifts to friends"));
         }
 
@@ -75,6 +75,7 @@ public sealed class GiftHandler(
 
         if (senderBalanceResult.Value < request.Value)
         {
+            logger.InsufficientFunds(senderId.Value, request.Type, senderBalanceResult.Value, request.Value);
             return Result.Failure(new Error("InsufficientFunds", $"Insufficient {request.Type}. Current: {senderBalanceResult.Value}, Requested: {request.Value}"));
         }
 
@@ -140,6 +141,7 @@ public sealed class GiftHandler(
                 cancellationToken);
         }
 
+        logger.GiftSent(senderId.Value, request.FriendPlayerId, request.Value, request.Type);
         return Result.Success();
     }
 }

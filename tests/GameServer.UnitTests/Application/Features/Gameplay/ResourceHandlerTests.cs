@@ -1,6 +1,7 @@
 using System.Text.Json;
 using GameServer.Application.Features.Gameplay;
 using GameServer.Domain.Interfaces;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GameServer.UnitTests.Application.Features.Gameplay;
 
@@ -16,7 +17,10 @@ public class ResourceHandlerTests
         _mockRepository = new Mock<IStateRepository>();
         _mockSessionManager = new Mock<ISessionManager>();
         _mockWebSocket = new Mock<WebSocket>();
-        _handler = new ResourceHandler(_mockRepository.Object, _mockSessionManager.Object);
+        _handler = new ResourceHandler(
+            _mockRepository.Object, 
+            _mockSessionManager.Object,
+            NullLogger<ResourceHandler>.Instance);
     }
 
     [Fact]

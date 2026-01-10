@@ -3,7 +3,9 @@ using GameServer.Infrastructure.Persistence.Context;
 
 namespace GameServer.Infrastructure.Persistence.Repositories;
 
-public sealed class SqliteStateRepository(GameDbContext context) : IStateRepository
+public sealed class SqliteStateRepository(
+    GameDbContext context,
+    ILogger<SqliteStateRepository> logger) : IStateRepository
 {
     private readonly GameDbContext _context = context;
 
@@ -43,10 +45,12 @@ public sealed class SqliteStateRepository(GameDbContext context) : IStateReposit
             _context.Players.Add(player);
             await _context.SaveChangesAsync(cancellationToken);
 
+            logger.PlayerCreated(playerId, deviceId);
             return Result<Guid>.Success(playerId);
         }
         catch (Exception ex)
         {
+            logger.DatabaseError("CreatePlayer", ex.Message);
             return Result<Guid>.Failure(new Error("CreatePlayer.Failed", ex.Message));
         }
     }
@@ -158,10 +162,12 @@ public sealed class SqliteStateRepository(GameDbContext context) : IStateReposit
             _context.Friendships.Add(friendship);
             await _context.SaveChangesAsync(cancellationToken);
 
+            logger.FriendshipAdded(playerId1, playerId2);
             return Result.Success();
         }
         catch (Exception ex)
         {
+            logger.DatabaseError("AddFriendship", ex.Message);
             return Result.Failure(new Error("AddFriendship.Failed", ex.Message));
         }
     }

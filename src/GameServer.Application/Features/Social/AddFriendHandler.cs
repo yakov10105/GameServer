@@ -5,7 +5,8 @@ namespace GameServer.Application.Features.Social;
 public sealed class AddFriendHandler(
     IStateRepository stateRepository,
     ISessionManager sessionManager,
-    IGameNotifier gameNotifier) : IMessageHandler
+    IGameNotifier gameNotifier,
+    ILogger<AddFriendHandler> logger) : IMessageHandler
 {
     public async ValueTask<Result> HandleAsync(
         WebSocket webSocket,
@@ -41,8 +42,6 @@ public sealed class AddFriendHandler(
         {
             return Result.Failure(result.Error ?? new Error("AddFriendFailed", "Failed to add friend"));
         }
-
-        // Notify the friend if they're online
         if (sessionManager.IsPlayerOnline(request.FriendPlayerId))
         {
             var notification = new 
@@ -58,6 +57,7 @@ public sealed class AddFriendHandler(
                 cancellationToken);
         }
 
+        logger.FriendshipCreated(playerId.Value, request.FriendPlayerId);
         return Result.Success();
     }
 }
