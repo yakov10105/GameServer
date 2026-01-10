@@ -19,6 +19,10 @@ public class LoginHandlerTests
         _mockSessionManager = new Mock<ISessionManager>();
         _mockNotifier = new Mock<IGameNotifier>();
         _mockWebSocket = new Mock<WebSocket>();
+        
+        _mockRepository.Setup(r => r.GetFriendIdsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<IReadOnlyList<Guid>>.Success(Array.Empty<Guid>()));
+        
         _handler = new LoginHandler(
             _mockRepository.Object, 
             _mockSessionManager.Object, 
@@ -109,6 +113,33 @@ public class LoginHandlerTests
         await _handler.HandleAsync(_mockWebSocket.Object, payload, CancellationToken.None);
 
         Assert.Same(_mockWebSocket.Object, capturedSocket);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenPlayerHasOnlineFriends_ShouldSendFriendOnlineNotification()
+    {
+        var deviceId = "player-with-friends";
+        var playerId = Guid.NewGuid();
+        var onlineFriendId = Guid.NewGuid();
+        var offlineFriendId = Guid.NewGuid();
+        var payload = CreatePayload(new { DeviceId = deviceId });
+
+        _mockRepository.Setup(r => r.GetPlayerIdByDeviceIdAsync(deviceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<Guid>.Success(playerId));
+        _mockRepository.Setup(r => r.GetFriendIdsAsync(playerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<IReadOnlyList<Guid>>.Success(new[] { onlineFriendId, offlineFriendId }));
+        _mockSessionManager.Setup(s => s.IsPlayerOnline(playerId)).Returns(false);
+        _mockSessionManager.Setup(s => s.IsPlayerOnline(onlineFriendId)).Returns(true);
+        _mockSessionManager.Setup(s => s.IsPlayerOnline(offlineFriendId)).Returns(false);
+
+        await _handler.HandleAsync(_mockWebSocket.Object, payload, CancellationToken.None);
+
+        _mockNotifier.Verify(
+            n => n.SendToPlayerAsync(onlineFriendId, It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+        _mockNotifier.Verify(
+            n => n.SendToPlayerAsync(offlineFriendId, It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     private static JsonElement CreatePayload(object data)

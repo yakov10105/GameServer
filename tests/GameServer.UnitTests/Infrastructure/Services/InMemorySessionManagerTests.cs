@@ -64,4 +64,44 @@ public sealed class InMemorySessionManagerTests
             Assert.True(sessionManager.IsPlayerOnline(playerId));
         }
     }
+
+    [Fact]
+    public void RemoveBySocket_WhenSessionExists_ShouldRemoveAndReturnPlayerId()
+    {
+        var playerId = Guid.NewGuid();
+        var mockWebSocket = new Mock<WebSocket>();
+        _sessionManager.RegisterSession(playerId, mockWebSocket.Object);
+
+        var removedPlayerId = _sessionManager.RemoveBySocket(mockWebSocket.Object);
+
+        Assert.Equal(playerId, removedPlayerId);
+        Assert.False(_sessionManager.IsPlayerOnline(playerId));
+        Assert.Null(_sessionManager.GetSocket(playerId));
+        Assert.Null(_sessionManager.GetPlayerId(mockWebSocket.Object));
+    }
+
+    [Fact]
+    public void RemoveBySocket_WhenSessionDoesNotExist_ShouldReturnNull()
+    {
+        var unregisteredSocket = new Mock<WebSocket>();
+
+        var removedPlayerId = _sessionManager.RemoveBySocket(unregisteredSocket.Object);
+
+        Assert.Null(removedPlayerId);
+    }
+
+    [Fact]
+    public void RemoveBySocket_ThenReRegister_ShouldAllowReLogin()
+    {
+        var playerId = Guid.NewGuid();
+        var originalSocket = new Mock<WebSocket>();
+        var newSocket = new Mock<WebSocket>();
+        _sessionManager.RegisterSession(playerId, originalSocket.Object);
+
+        _sessionManager.RemoveBySocket(originalSocket.Object);
+        _sessionManager.RegisterSession(playerId, newSocket.Object);
+
+        Assert.True(_sessionManager.IsPlayerOnline(playerId));
+        Assert.Same(newSocket.Object, _sessionManager.GetSocket(playerId));
+    }
 }

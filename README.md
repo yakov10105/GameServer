@@ -191,16 +191,18 @@ All messages use a JSON envelope format:
 
 ### Message Types
 
-| Type               | Direction       | Description                       |
-| ------------------ | --------------- | --------------------------------- |
-| `LOGIN`            | Client → Server | Authenticate with device ID       |
-| `LOGIN_RESPONSE`   | Server → Client | Returns player ID                 |
-| `UPDATE_RESOURCES` | Client → Server | Add/deduct coins or rolls         |
-| `ADD_FRIEND`       | Client → Server | Add another player as friend      |
-| `SEND_GIFT`        | Client → Server | Send resources to a friend        |
-| `FRIEND_ADDED`     | Server → Client | Notification when added as friend |
-| `GIFT_RECEIVED`    | Server → Client | Notification of received gift     |
-| `ERROR`            | Server → Client | Error response                    |
+| Type               | Direction       | Description                             |
+| ------------------ | --------------- | --------------------------------------- |
+| `LOGIN`            | Client → Server | Authenticate with device ID             |
+| `LOGIN_RESPONSE`   | Server → Client | Returns player ID                       |
+| `UPDATE_RESOURCES` | Client → Server | Add/deduct coins or rolls               |
+| `RESOURCE_UPDATED` | Server → Client | Returns new balance after update        |
+| `ADD_FRIEND`       | Client → Server | Add another player as friend            |
+| `SEND_GIFT`        | Client → Server | Send resources to a friend              |
+| `FRIEND_ADDED`     | Server → Client | Notification when added as friend       |
+| `FRIEND_ONLINE`    | Server → Client | Notification when a friend comes online |
+| `GIFT_RECEIVED`    | Server → Client | Notification of received gift           |
+| `ERROR`            | Server → Client | Error response                          |
 
 ### Example: Login
 

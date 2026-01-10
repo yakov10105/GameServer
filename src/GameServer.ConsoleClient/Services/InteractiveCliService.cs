@@ -79,6 +79,27 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
             logger.LogInformation("Friend added by: PlayerId={PlayerId}", friendAdded.ByPlayerId);
         };
 
+        client.OnFriendOnline += friendOnline =>
+        {
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"🟢 Friend online! Player {friendOnline.FriendPlayerId} is now online.");
+            Console.ResetColor();
+            Console.Write("> ");
+            logger.LogInformation("Friend came online: PlayerId={PlayerId}", friendOnline.FriendPlayerId);
+        };
+
+        client.OnResourceUpdated += resourceUpdated =>
+        {
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.WriteLine($"💰 Balance updated! {resourceUpdated.TypeName}: {resourceUpdated.NewBalance}");
+            Console.ResetColor();
+            Console.Write("> ");
+            logger.LogInformation("Resource updated: Type={Type}, NewBalance={NewBalance}", 
+                resourceUpdated.TypeName, resourceUpdated.NewBalance);
+        };
+
         client.OnError += error =>
         {
             Console.WriteLine();

@@ -32,5 +32,9 @@ public static partial class ApplicationLog
     [LoggerMessage(EventId = 1300, Level = LogLevel.Information,
         Message = "Friendship created: {PlayerId} <-> {FriendId}")]
     public static partial void FriendshipCreated(this ILogger logger, Guid playerId, Guid friendId);
+
+    [LoggerMessage(EventId = 1400, Level = LogLevel.Debug,
+        Message = "Friend online notification sent: Player {PlayerId} is online, notified {FriendId}")]
+    public static partial void FriendOnlineNotificationSent(this ILogger logger, Guid playerId, Guid friendId);
 }
 

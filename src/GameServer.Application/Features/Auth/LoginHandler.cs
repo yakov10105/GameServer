@@ -1,5 +1,6 @@
 using GameServer.Application.Common.Messages;
 using GameServer.Application.Features.Auth.Responses;
+using GameServer.Application.Features.Social.Events;
 
 namespace GameServer.Application.Features.Auth;
 
@@ -63,7 +64,34 @@ public sealed class LoginHandler(
         await gameNotifier.SendToPlayerAsync(playerId, messageBytes, cancellationToken);
 
         logger.PlayerLoggedIn(playerId, request.DeviceId);
+
+        await NotifyFriendsPlayerOnlineAsync(playerId, cancellationToken);
+
         return Result.Success();
+    }
+
+    private async Task NotifyFriendsPlayerOnlineAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        var friendsResult = await stateRepository.GetFriendIdsAsync(playerId, cancellationToken);
+
+        if (!friendsResult.IsSuccess || friendsResult.Value is not { Count: > 0 } friends)
+        {
+            return;
+        }
+
+        var notification = new ServerMessage<FriendOnlinePayload>(
+            MessageTypes.FriendOnline,
+            new FriendOnlinePayload(playerId));
+        var notificationBytes = JsonSerializer.SerializeToUtf8Bytes(notification, JsonSerializerOptionsProvider.Default);
+
+        foreach (var friendId in friends)
+        {
+            if (sessionManager.IsPlayerOnline(friendId))
+            {
+                await gameNotifier.SendToPlayerAsync(friendId, notificationBytes, cancellationToken);
+                logger.FriendOnlineNotificationSent(playerId, friendId);
+            }
+        }
     }
 }
 

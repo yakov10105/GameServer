@@ -1,8 +1,12 @@
+using GameServer.Application.Common.Messages;
+using GameServer.Application.Features.Gameplay.Responses;
+
 namespace GameServer.Application.Features.Gameplay;
 
 public sealed class ResourceHandler(
     IStateRepository stateRepository,
     ISessionManager sessionManager,
+    IGameNotifier gameNotifier,
     ILogger<ResourceHandler> logger) : IMessageHandler
 {
     public async ValueTask<Result> HandleAsync(
@@ -62,6 +66,12 @@ public sealed class ResourceHandler(
         {
             return Result.Failure(updateResult.Error ?? new Error("UpdateResourceFailed", "Failed to update resource"));
         }
+
+        var response = new ServerMessage<ResourceUpdatedPayload>(
+            MessageTypes.ResourceUpdated,
+            new ResourceUpdatedPayload(request.Type, newBalance));
+        var messageBytes = JsonSerializer.SerializeToUtf8Bytes(response, JsonSerializerOptionsProvider.Default);
+        await gameNotifier.SendToPlayerAsync(playerId.Value, messageBytes, cancellationToken);
 
         logger.ResourceUpdated(playerId.Value, request.Type, oldBalance, newBalance);
         return Result.Success();

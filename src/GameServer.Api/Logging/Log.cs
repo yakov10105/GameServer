@@ -99,5 +99,11 @@ public static partial class Log
         Level = LogLevel.Warning,
         Message = "Slow message processing: {MessageType} took {DurationMs}ms (threshold: {ThresholdMs}ms)")]
     public static partial void SlowMessageProcessing(this ILogger logger, string messageType, double durationMs, int thresholdMs);
+
+    [LoggerMessage(
+        EventId = 5003,
+        Level = LogLevel.Information,
+        Message = "Session cleaned up for Player {PlayerId} on disconnect")]
+    public static partial void SessionCleanedUp(this ILogger logger, Guid playerId);
 }
 

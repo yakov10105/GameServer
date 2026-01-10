@@ -21,6 +21,8 @@ public sealed class GameClient(ILogger<GameClient> logger) : IAsyncDisposable
     public event Action<ServerMessageEnvelope>? OnMessageReceived;
     public event Action<GiftReceivedEvent>? OnGiftReceived;
     public event Action<FriendAddedEvent>? OnFriendAdded;
+    public event Action<FriendOnlineEvent>? OnFriendOnline;
+    public event Action<ResourceUpdatedEvent>? OnResourceUpdated;
     public event Action<LoginResponse>? OnLoginResponse;
     public event Action<ErrorResponse>? OnError;
     public event Action<WebSocketCloseStatus?, string?>? OnDisconnected;
@@ -291,6 +293,16 @@ public sealed class GameClient(ILogger<GameClient> logger) : IAsyncDisposable
                 case "FRIEND_ADDED":
                     var friendAdded = envelope.Payload.Deserialize<FriendAddedEvent>(JsonOptions);
                     OnFriendAdded?.Invoke(friendAdded);
+                    break;
+
+                case "FRIEND_ONLINE":
+                    var friendOnline = envelope.Payload.Deserialize<FriendOnlineEvent>(JsonOptions);
+                    OnFriendOnline?.Invoke(friendOnline);
+                    break;
+
+                case "RESOURCE_UPDATED":
+                    var resourceUpdated = envelope.Payload.Deserialize<ResourceUpdatedEvent>(JsonOptions);
+                    OnResourceUpdated?.Invoke(resourceUpdated);
                     break;
 
                 case "LOGIN_RESPONSE":

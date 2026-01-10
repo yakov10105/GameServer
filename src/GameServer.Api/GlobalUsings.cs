@@ -18,4 +18,5 @@ global using GameServer.Api.Middleware;
 global using GameServer.Application;
 global using GameServer.Application.Common.Interfaces;
 global using GameServer.Domain.Enums;
+global using GameServer.Domain.Interfaces;
 global using GameServer.Infrastructure;

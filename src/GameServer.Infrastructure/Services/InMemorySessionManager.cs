@@ -23,6 +23,18 @@ public sealed class InMemorySessionManager(ILogger<InMemorySessionManager> logge
         }
     }
 
+    public Guid? RemoveBySocket(WebSocket webSocket)
+    {
+        if (!_socketToPlayer.TryRemove(webSocket, out var playerId))
+        {
+            return null;
+        }
+
+        _playerToSocket.TryRemove(playerId, out _);
+        logger.SessionRemoved(playerId);
+        return playerId;
+    }
+
     public Guid? GetPlayerId(WebSocket webSocket)
     {
         return _socketToPlayer.TryGetValue(webSocket, out var playerId) ? playerId : null;

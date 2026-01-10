@@ -8,8 +8,10 @@ public static class MessageTypes
     public const string AddFriend = "ADD_FRIEND";
     
     public const string LoginResponse = "LOGIN_RESPONSE";
+    public const string ResourceUpdated = "RESOURCE_UPDATED";
     public const string GiftReceived = "GIFT_RECEIVED";
     public const string FriendAdded = "FRIEND_ADDED";
+    public const string FriendOnline = "FRIEND_ONLINE";
     public const string Error = "ERROR";
 }
 

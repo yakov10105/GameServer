@@ -1,4 +1,5 @@
 using System.Text.Json;
+using GameServer.Application.Common.Interfaces;
 using GameServer.Application.Features.Gameplay;
 using GameServer.Domain.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -9,6 +10,7 @@ public class ResourceHandlerTests
 {
     private readonly Mock<IStateRepository> _mockRepository;
     private readonly Mock<ISessionManager> _mockSessionManager;
+    private readonly Mock<IGameNotifier> _mockNotifier;
     private readonly Mock<WebSocket> _mockWebSocket;
     private readonly ResourceHandler _handler;
 
@@ -16,10 +18,12 @@ public class ResourceHandlerTests
     {
         _mockRepository = new Mock<IStateRepository>();
         _mockSessionManager = new Mock<ISessionManager>();
+        _mockNotifier = new Mock<IGameNotifier>();
         _mockWebSocket = new Mock<WebSocket>();
         _handler = new ResourceHandler(
             _mockRepository.Object, 
             _mockSessionManager.Object,
+            _mockNotifier.Object,
             NullLogger<ResourceHandler>.Instance);
     }
 
@@ -99,6 +103,26 @@ public class ResourceHandlerTests
 
         Assert.False(result.IsSuccess);
         Assert.Equal("InvalidResourceType", result.Error?.Code);
+    }
+
+    [Fact]
+    public async Task HandleAsync_OnSuccess_ShouldSendResourceUpdatedToPlayer()
+    {
+        var playerId = Guid.NewGuid();
+        var payload = CreatePayload(new { Type = ResourceType.Coins, Value = 500L });
+
+        _mockSessionManager.Setup(s => s.GetPlayerId(It.IsAny<WebSocket>())).Returns(playerId);
+        _mockRepository.Setup(r => r.GetResourceAmountAsync(playerId, ResourceType.Coins, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<long>.Success(1000));
+        _mockRepository.Setup(r => r.UpdateResourceAsync(playerId, ResourceType.Coins, 1500, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success());
+
+        var result = await _handler.HandleAsync(_mockWebSocket.Object, payload, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        _mockNotifier.Verify(
+            n => n.SendToPlayerAsync(playerId, It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     private static JsonElement CreatePayload(object data)

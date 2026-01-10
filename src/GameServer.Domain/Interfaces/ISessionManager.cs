@@ -6,6 +6,8 @@ public interface ISessionManager
     
     void RemoveSession(Guid playerId);
     
+    Guid? RemoveBySocket(WebSocket webSocket);
+    
     Guid? GetPlayerId(WebSocket webSocket);
     
     WebSocket? GetSocket(Guid playerId);
