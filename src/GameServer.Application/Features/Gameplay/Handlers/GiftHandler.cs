@@ -1,7 +1,8 @@
 using GameServer.Application.Common.Messages;
 using GameServer.Application.Features.Gameplay.Events;
+using GameServer.Application.Features.Gameplay.Requests;
 
-namespace GameServer.Application.Features.Gameplay;
+namespace GameServer.Application.Features.Gameplay.Handlers;
 
 public sealed class GiftHandler(
     IStateRepository stateRepository,

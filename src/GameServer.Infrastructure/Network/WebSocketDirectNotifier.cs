@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-
 namespace GameServer.Infrastructure.Network;
 
 public sealed class WebSocketDirectNotifier(

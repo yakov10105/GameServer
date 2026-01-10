@@ -29,11 +29,11 @@ public sealed class LocalSemaphoreProvider : ISynchronizationProvider
         var firstSemaphore = _locks.GetOrAdd(firstId, _ => new SemaphoreSlim(1, 1));
         var secondSemaphore = _locks.GetOrAdd(secondId, _ => new SemaphoreSlim(1, 1));
 
-        await firstSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+        await firstSemaphore.WaitAsync(cancellationToken);
         
         try
         {
-            await secondSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+            await secondSemaphore.WaitAsync(cancellationToken);
         }
         catch
         {

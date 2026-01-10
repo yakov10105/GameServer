@@ -1,5 +1,5 @@
 using System.Text.Json;
-using GameServer.Application.Features.Auth;
+using GameServer.Application.Features.Auth.Handlers;
 using GameServer.Domain.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
 

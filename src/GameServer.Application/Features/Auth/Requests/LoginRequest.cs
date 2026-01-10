@@ -1,4 +1,3 @@
-namespace GameServer.Application.Features.Auth;
+namespace GameServer.Application.Features.Auth.Requests;
 
 public readonly record struct LoginRequest(string DeviceId);
-

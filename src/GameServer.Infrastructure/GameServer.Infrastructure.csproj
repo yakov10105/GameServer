@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GameServer.Domain\GameServer.Domain.csproj" />
-    <ProjectReference Include="..\GameServer.Application\GameServer.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

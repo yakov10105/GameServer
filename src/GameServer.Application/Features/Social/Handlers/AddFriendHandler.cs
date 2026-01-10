@@ -1,7 +1,8 @@
 using GameServer.Application.Common.Messages;
 using GameServer.Application.Features.Social.Events;
+using GameServer.Application.Features.Social.Requests;
 
-namespace GameServer.Application.Features.Social;
+namespace GameServer.Application.Features.Social.Handlers;
 
 public sealed class AddFriendHandler(
     IStateRepository stateRepository,
@@ -58,4 +59,3 @@ public sealed class AddFriendHandler(
         return Result.Success();
     }
 }
-

@@ -1,3 +1,7 @@
+using GameServer.Application.Features.Auth.Handlers;
+using GameServer.Application.Features.Gameplay.Handlers;
+using GameServer.Application.Features.Social.Handlers;
+
 namespace GameServer.Application;
 
 public static class DependencyInjection

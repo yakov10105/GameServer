@@ -1,7 +1,8 @@
 using GameServer.Application.Common.Messages;
+using GameServer.Application.Features.Gameplay.Requests;
 using GameServer.Application.Features.Gameplay.Responses;
 
-namespace GameServer.Application.Features.Gameplay;
+namespace GameServer.Application.Features.Gameplay.Handlers;
 
 public sealed class ResourceHandler(
     IStateRepository stateRepository,

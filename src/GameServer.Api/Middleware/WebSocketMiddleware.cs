@@ -90,6 +90,8 @@ public sealed class WebSocketMiddleware
                     CancellationToken.None);
             }
 
+            webSocket?.Dispose();
+
             Interlocked.Decrement(ref _activeConnections);
             _connectionLimiter.Release();
         }
@@ -109,12 +111,11 @@ public sealed class WebSocketMiddleware
                 var message = await ReceiveFullMessageAsync(webSocket, buffer, _options.MaxMessageSizeBytes, cancellationToken);
                 var latencyMs = stopwatch.Elapsed.TotalMilliseconds;
 
-                var messageType = ExtractMessageType(message);
-                _logger.MessageReceived(messageType, message.Length, latencyMs);
+                _logger.MessageReceived(message.Length, latencyMs);
 
                 if (latencyMs > _options.LatencyThresholdMs)
                 {
-                    _logger.SlowMessageProcessing(messageType, latencyMs, _options.LatencyThresholdMs);
+                    _logger.SlowMessageProcessing(latencyMs, _options.LatencyThresholdMs);
                 }
 
                 await messageDispatcher.DispatchAsync(webSocket, message, cancellationToken);
@@ -124,27 +125,6 @@ public sealed class WebSocketMiddleware
         {
             ArrayPool<byte>.Shared.Return(buffer);
         }
-    }
-
-    private static string ExtractMessageType(ReadOnlyMemory<byte> message)
-    {
-        if (message.IsEmpty)
-            return "Empty";
-
-        try
-        {
-            using var doc = JsonDocument.Parse(message);
-            if (doc.RootElement.TryGetProperty("type", out var typeProperty))
-            {
-                return typeProperty.GetString() ?? "Unknown";
-            }
-        }
-        catch
-        {
-            
-        }
-
-        return "Unknown";
     }
 
     private static async Task<ReadOnlyMemory<byte>> ReceiveFullMessageAsync(

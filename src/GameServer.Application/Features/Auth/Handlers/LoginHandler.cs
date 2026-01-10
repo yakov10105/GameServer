@@ -1,8 +1,9 @@
 using GameServer.Application.Common.Messages;
+using GameServer.Application.Features.Auth.Requests;
 using GameServer.Application.Features.Auth.Responses;
 using GameServer.Application.Features.Social.Events;
 
-namespace GameServer.Application.Features.Auth;
+namespace GameServer.Application.Features.Auth.Handlers;
 
 public sealed class LoginHandler(
     IStateRepository stateRepository,
@@ -94,4 +95,3 @@ public sealed class LoginHandler(
         }
     }
 }
-

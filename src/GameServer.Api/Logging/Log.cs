@@ -91,14 +91,14 @@ public static partial class Log
     [LoggerMessage(
         EventId = 5001,
         Level = LogLevel.Information,
-        Message = "Message received: {MessageType}, Size: {SizeBytes}, Latency: {LatencyMs}ms")]
-    public static partial void MessageReceived(this ILogger logger, string messageType, int sizeBytes, double latencyMs);
+        Message = "Message received - Size: {SizeBytes}, Latency: {LatencyMs}ms")]
+    public static partial void MessageReceived(this ILogger logger, int sizeBytes, double latencyMs);
 
     [LoggerMessage(
         EventId = 5002,
         Level = LogLevel.Warning,
-        Message = "Slow message processing: {MessageType} took {DurationMs}ms (threshold: {ThresholdMs}ms)")]
-    public static partial void SlowMessageProcessing(this ILogger logger, string messageType, double durationMs, int thresholdMs);
+        Message = "Slow message processing - took {DurationMs}ms (threshold: {ThresholdMs}ms)")]
+    public static partial void SlowMessageProcessing(this ILogger logger, double durationMs, int thresholdMs);
 
     [LoggerMessage(
         EventId = 5003,
