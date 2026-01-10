@@ -168,6 +168,16 @@ dotnet test
 | `GAMESERVER_URI`       | WebSocket server URL              | `ws://localhost:5000/ws` |
 | `GAMESERVER_LOG_LEVEL` | Log level (DEBUG/INFO/WARN/ERROR) | `Information`            |
 
+**Log Files:** Client logs are saved to the `logs/` directory with daily rolling files:
+
+```
+logs/console-client-20260110.log
+logs/console-client-20260111.log
+...
+```
+
+Use `--verbose` or `-v` flag for debug-level console output.
+
 ## Protocol
 
 All messages use a JSON envelope format:

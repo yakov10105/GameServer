@@ -1,7 +1,3 @@
-using GameServer.Application.Features.Auth;
-using GameServer.Application.Features.Gameplay;
-using GameServer.Application.Features.Social;
-
 namespace GameServer.Application;
 
 public static class DependencyInjection
@@ -10,10 +6,10 @@ public static class DependencyInjection
     {
         services.AddScoped<IMessageDispatcher, MessageDispatcher>();
         
-        services.AddKeyedScoped<IMessageHandler, LoginHandler>("LOGIN");
-        services.AddKeyedScoped<IMessageHandler, ResourceHandler>("UPDATE_RESOURCES");
-        services.AddKeyedScoped<IMessageHandler, GiftHandler>("SEND_GIFT");
-        services.AddKeyedScoped<IMessageHandler, AddFriendHandler>("ADD_FRIEND");
+        services.AddKeyedScoped<IMessageHandler, LoginHandler>(MessageTypes.Login);
+        services.AddKeyedScoped<IMessageHandler, ResourceHandler>(MessageTypes.UpdateResources);
+        services.AddKeyedScoped<IMessageHandler, GiftHandler>(MessageTypes.SendGift);
+        services.AddKeyedScoped<IMessageHandler, AddFriendHandler>(MessageTypes.AddFriend);
         
         return services;
     }

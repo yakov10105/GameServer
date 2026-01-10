@@ -73,8 +73,10 @@ public sealed class MessageDispatcher(
         if (webSocket.State != WebSocketState.Open)
             return;
 
-        var response = new { type = "ERROR", payload = new { code, message } };
-        var bytes = JsonSerializer.SerializeToUtf8Bytes(response);
+        var response = new ServerMessage<ErrorPayload>(
+            MessageTypes.Error,
+            new ErrorPayload(code, message));
+        var bytes = JsonSerializer.SerializeToUtf8Bytes(response, JsonSerializerOptionsProvider.Default);
         
         await webSocket.SendAsync(
             bytes.AsMemory(),
