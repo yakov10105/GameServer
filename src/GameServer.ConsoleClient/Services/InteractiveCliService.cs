@@ -6,6 +6,8 @@ namespace GameServer.ConsoleClient.Services;
 public sealed class InteractiveCliService(GameClient client, ILogger<InteractiveCliService> logger)
 {
     private const string DefaultServerUri = "ws://localhost:5000/ws";
+    private string? _currentDeviceId;
+    private Guid? _currentPlayerId;
 
     public async Task<int> RunAsync(string[] args, bool verboseMode = false)
     {
@@ -47,6 +49,7 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
     {
         client.OnLoginResponse += response =>
         {
+            _currentPlayerId = response.PlayerId;
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine($"✓ Logged in! PlayerId: {response.PlayerId}");
@@ -88,6 +91,8 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
 
         client.OnDisconnected += (status, description) =>
         {
+            _currentPlayerId = null;
+            _currentDeviceId = null;
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.WriteLine($"Disconnected: {status} - {description}");
@@ -132,6 +137,10 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
                         await HandleAddFriend(parts);
                         break;
 
+                    case "status" or "whoami":
+                        PrintStatus();
+                        break;
+
                     case "help":
                         PrintHelp();
                         break;
@@ -158,7 +167,17 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
 
     private async Task HandleLogin(string[] parts)
     {
+        if (_currentPlayerId.HasValue)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"Already logged in as PlayerId: {_currentPlayerId.Value}");
+            Console.WriteLine($"DeviceId: {_currentDeviceId}");
+            Console.ResetColor();
+            return;
+        }
+
         var deviceId = parts.Length >= 2 ? parts[1] : Guid.NewGuid().ToString();
+        _currentDeviceId = deviceId;
         
         Console.WriteLine($"Logging in with DeviceId: {deviceId}...");
         logger.LogInformation("Sending login request: DeviceId={DeviceId}", deviceId);
@@ -167,6 +186,9 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
 
     private async Task HandleUpdateResource(string[] parts)
     {
+        if (!RequireLogin())
+            return;
+
         if (parts.Length < 3)
         {
             Console.WriteLine("Usage: balance <type> <value>");
@@ -197,6 +219,9 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
 
     private async Task HandleSendGift(string[] parts)
     {
+        if (!RequireLogin())
+            return;
+
         if (parts.Length < 4)
         {
             Console.WriteLine("Usage: gift <friend-player-id> <type> <amount>");
@@ -232,6 +257,9 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
 
     private async Task HandleAddFriend(string[] parts)
     {
+        if (!RequireLogin())
+            return;
+
         if (parts.Length < 2)
         {
             Console.WriteLine("Usage: addfriend <friend-player-id>");
@@ -264,11 +292,44 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
         Console.WriteLine();
     }
 
+    private bool RequireLogin()
+    {
+        if (_currentPlayerId.HasValue)
+            return true;
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("You must login first. Use 'login' command.");
+        Console.ResetColor();
+        return false;
+    }
+
+    private void PrintStatus()
+    {
+        Console.WriteLine();
+        if (_currentPlayerId.HasValue)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Status: Logged In");
+            Console.ResetColor();
+            Console.WriteLine($"  PlayerId: {_currentPlayerId.Value}");
+            Console.WriteLine($"  DeviceId: {_currentDeviceId}");
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Status: Not Logged In");
+            Console.ResetColor();
+            Console.WriteLine("  Use 'login' command to authenticate.");
+        }
+        Console.WriteLine();
+    }
+
     private static void PrintHelp()
     {
         Console.WriteLine();
         Console.WriteLine("Available commands:");
         Console.WriteLine("  login [device-id]                        - Login (auto-generates ID if omitted)");
+        Console.WriteLine("  status                                   - Show current login status");
         Console.WriteLine("  balance <type> <value>                   - Update resource (type: 0=Coins, 1=Rolls)");
         Console.WriteLine("  addfriend <player-id>                    - Add a player as friend");
         Console.WriteLine("  gift <friend-id> <type> <amount>         - Send gift to friend");

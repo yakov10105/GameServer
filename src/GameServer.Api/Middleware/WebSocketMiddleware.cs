@@ -113,7 +113,7 @@ public sealed class WebSocketMiddleware(
         }
         catch
         {
-            // Ignore parse errors for logging purposes
+            
         }
 
         return "Unknown";

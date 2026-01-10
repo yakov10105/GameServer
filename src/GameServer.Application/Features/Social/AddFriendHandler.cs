@@ -1,3 +1,6 @@
+using GameServer.Application.Common.Messages;
+using GameServer.Application.Features.Social.Events;
+
 namespace GameServer.Application.Features.Social;
 
 public sealed class AddFriendHandler(
@@ -12,14 +15,14 @@ public sealed class AddFriendHandler(
         CancellationToken cancellationToken = default)
     {
         var playerId = sessionManager.GetPlayerId(webSocket);
-        
+
         if (playerId is null)
         {
             return Result.Failure(new Error("Unauthorized", "Socket not registered. Please login first."));
         }
 
         AddFriendRequest request;
-        
+
         try
         {
             request = payload.Deserialize<AddFriendRequest>(JsonSerializerOptionsProvider.Default);
@@ -42,16 +45,12 @@ public sealed class AddFriendHandler(
         }
         if (sessionManager.IsPlayerOnline(request.FriendPlayerId))
         {
-            var notification = new 
-            { 
-                type = "FRIEND_ADDED", 
-                payload = new { byPlayerId = playerId.Value } 
-            };
+            var notification = new ServerMessage<FriendAddedPayload>(MessageTypes.FriendAdded, new FriendAddedPayload(playerId.Value));
             var messageBytes = JsonSerializer.SerializeToUtf8Bytes(notification, JsonSerializerOptionsProvider.Default);
-            
+
             await gameNotifier.SendToPlayerAsync(
-                request.FriendPlayerId, 
-                messageBytes, 
+                request.FriendPlayerId,
+                messageBytes,
                 cancellationToken);
         }
 

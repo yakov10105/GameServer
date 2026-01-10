@@ -1,3 +1,6 @@
+using GameServer.Application.Common.Messages;
+using GameServer.Application.Features.Auth.Responses;
+
 namespace GameServer.Application.Features.Auth;
 
 public sealed class LoginHandler(
@@ -12,7 +15,7 @@ public sealed class LoginHandler(
         CancellationToken cancellationToken = default)
     {
         LoginRequest request;
-        
+
         try
         {
             request = payload.Deserialize<LoginRequest>(JsonSerializerOptionsProvider.Default);
@@ -34,12 +37,12 @@ public sealed class LoginHandler(
         if (!playerIdResult.IsSuccess)
         {
             var createResult = await stateRepository.CreatePlayerAsync(request.DeviceId, cancellationToken);
-            
+
             if (!createResult.IsSuccess)
             {
                 return Result.Failure(createResult.Error ?? new Error("CreatePlayerFailed", "Failed to create player"));
             }
-            
+
             playerId = createResult.Value;
         }
         else
@@ -55,7 +58,7 @@ public sealed class LoginHandler(
 
         sessionManager.RegisterSession(playerId, webSocket);
 
-        var response = new { type = "LOGIN_RESPONSE", payload = new { playerId } };
+        var response = new ServerMessage<LoginResponsePayload>(MessageTypes.LoginResponse, new(playerId));
         var messageBytes = JsonSerializer.SerializeToUtf8Bytes(response, JsonSerializerOptionsProvider.Default);
         await gameNotifier.SendToPlayerAsync(playerId, messageBytes, cancellationToken);
 

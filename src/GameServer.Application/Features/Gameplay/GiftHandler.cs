@@ -1,3 +1,6 @@
+using GameServer.Application.Common.Messages;
+using GameServer.Application.Features.Gameplay.Events;
+
 namespace GameServer.Application.Features.Gameplay;
 
 public sealed class GiftHandler(
@@ -123,9 +126,7 @@ public sealed class GiftHandler(
 
         if (sessionManager.IsPlayerOnline(request.FriendPlayerId))
         {
-            var giftEvent = new ServerMessage<GiftReceivedPayload>(
-                MessageTypes.GiftReceived,
-                new GiftReceivedPayload(senderId.Value, request.Type, request.Value));
+            var giftEvent = new ServerMessage<GiftReceivedPayload>(MessageTypes.GiftReceived, new(senderId.Value, request.Type, request.Value));
             var messageBytes = JsonSerializer.SerializeToUtf8Bytes(giftEvent, JsonSerializerOptionsProvider.Default);
             
             await gameNotifier.SendToPlayerAsync(
