@@ -1,7 +1,3 @@
-using GameServer.ConsoleClient.Model.Events;
-using Microsoft.Extensions.Logging;
-using System.Buffers;
-
 namespace GameServer.ConsoleClient.Clients;
 
 public sealed class GameClient(ILogger<GameClient> logger) : IAsyncDisposable

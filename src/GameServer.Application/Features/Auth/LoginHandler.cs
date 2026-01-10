@@ -1,5 +1,3 @@
-using GameServer.Domain.Interfaces;
-
 namespace GameServer.Application.Features.Auth;
 
 public sealed class LoginHandler(
@@ -57,9 +55,7 @@ public sealed class LoginHandler(
 
         sessionManager.RegisterSession(playerId, webSocket);
 
-        var response = new ServerMessage<LoginResponsePayload>(
-            MessageTypes.LoginResponse,
-            new LoginResponsePayload(playerId));
+        var response = new { type = "LOGIN_RESPONSE", payload = new { playerId } };
         var messageBytes = JsonSerializer.SerializeToUtf8Bytes(response, JsonSerializerOptionsProvider.Default);
         await gameNotifier.SendToPlayerAsync(playerId, messageBytes, cancellationToken);
 

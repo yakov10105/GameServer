@@ -1,5 +1,3 @@
-using GameServer.Domain.Interfaces;
-
 namespace GameServer.Application.Features.Social;
 
 public sealed class AddFriendHandler(
@@ -44,9 +42,11 @@ public sealed class AddFriendHandler(
         }
         if (sessionManager.IsPlayerOnline(request.FriendPlayerId))
         {
-            var notification = new ServerMessage<FriendAddedPayload>(
-                MessageTypes.FriendAdded,
-                new FriendAddedPayload(playerId.Value));
+            var notification = new 
+            { 
+                type = "FRIEND_ADDED", 
+                payload = new { byPlayerId = playerId.Value } 
+            };
             var messageBytes = JsonSerializer.SerializeToUtf8Bytes(notification, JsonSerializerOptionsProvider.Default);
             
             await gameNotifier.SendToPlayerAsync(
@@ -59,6 +59,4 @@ public sealed class AddFriendHandler(
         return Result.Success();
     }
 }
-
-internal readonly record struct AddFriendRequest(Guid FriendPlayerId);
 

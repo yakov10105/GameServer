@@ -1,10 +1,5 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Serilog;
-using Serilog.Events;
-using GameServer.ConsoleClient.Clients;
-using GameServer.ConsoleClient.Services;
+
+
 
 var verboseMode = args.Contains("--verbose") || args.Contains("-v");
 var filteredArgs = args.Where(a => a != "--verbose" && a != "-v").ToArray();
