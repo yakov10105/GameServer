@@ -22,13 +22,6 @@ using (var scope = app.Services.CreateScope())
 
 var startTime = DateTimeOffset.UtcNow;
 
-app.MapGet("/health", () => Results.Ok(new
-{
-    status = "healthy",
-    activeConnections = WebSocketMiddleware.ActiveConnections,
-    uptime = (DateTimeOffset.UtcNow - startTime).ToString(@"dd\.hh\:mm\:ss")
-}));
-
 app.UseWebSockets();
 app.UseMiddleware<WebSocketMiddleware>();
 

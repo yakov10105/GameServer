@@ -107,28 +107,8 @@ erDiagram
 ## Prerequisites
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [Docker](https://www.docker.com/get-started) (optional, for containerized deployment)
 
 ## Quick Start
-
-### Option 1: Docker (Recommended)
-
-```bash
-# Clone the repository
-git clone https://github.com/yakov10105/GameServer.git
-cd assignment
-
-# Start the server
-docker-compose up -d
-
-# Check health
-curl http://localhost:5000/health
-
-# Run the interactive client
-docker-compose --profile client run --rm gameserver-client
-```
-
-### Option 2: Local Development
 
 ```bash
 # Clone and restore
@@ -136,14 +116,14 @@ git clone https://github.com/yakov10105/GameServer.git
 cd assignment
 dotnet restore
 
-# Run the server
+# Terminal 1: Run the server
 dotnet run --project src/GameServer.Api
 
-# In another terminal, run the client
+# Terminal 2: Run the client
 dotnet run --project src/GameServer.ConsoleClient
 ```
 
-### Option 3: Run Tests
+### Run Tests
 
 ```bash
 dotnet test
@@ -237,7 +217,7 @@ quit                           Disconnect and exit
 
 ## Testing Gift Flow
 
-To test the complete gift flow between two players:
+To test the complete gift flow between two players, open **3 terminals**:
 
 ```bash
 # Terminal 1: Start the API server
@@ -245,54 +225,41 @@ dotnet run --project src/GameServer.Api
 
 # Terminal 2: Client A
 dotnet run --project src/GameServer.ConsoleClient
-> login
-Logging in with DeviceId: aaaa-1111-2222-3333-444444444444...
-✓ Logged in! PlayerId: 11111111-aaaa-bbbb-cccc-dddddddddddd
 
 # Terminal 3: Client B
 dotnet run --project src/GameServer.ConsoleClient
+```
+
+### Test Steps
+
+```bash
+# Client A: Login
 > login
-Logging in with DeviceId: bbbb-5555-6666-7777-888888888888...
+✓ Logged in! PlayerId: 11111111-aaaa-bbbb-cccc-dddddddddddd
+
+# Client B: Login
+> login
 ✓ Logged in! PlayerId: 22222222-eeee-ffff-0000-111111111111
 
 # Client A: Add coins to have something to gift
 > balance 0 500
-Adding 500 Coins...
+💰 Balance updated! Coins: 500
 
 # Client A: Add Client B as friend (copy B's PlayerId)
 > addfriend 22222222-eeee-ffff-0000-111111111111
 
+# Client B should see:
+👋 New friend! Player 11111111-aaaa-bbbb-cccc-dddddddddddd added you as a friend.
+
 # Client A: Send gift to Client B
 > gift 22222222-eeee-ffff-0000-111111111111 0 100
-Sending 100 Coins to 22222222-eeee-ffff-0000-111111111111...
+Sending 100 Coins...
 
 # Client B should see:
 🎁 Gift received! From: 11111111-aaaa-bbbb-cccc-dddddddddddd, Type: Coins, Amount: 100
 ```
 
 **Important:** Players must be friends before sending gifts!
-
-## Docker Commands
-
-```bash
-# Build images
-docker-compose build
-
-# Start API only
-docker-compose up -d
-
-# Start with client
-docker-compose --profile client up
-
-# View logs
-docker-compose logs -f gameserver-api
-
-# Stop all
-docker-compose down
-
-# Rebuild without cache
-docker-compose build --no-cache
-```
 
 ## Project Structure
 
@@ -341,7 +308,7 @@ graph LR
 - **Performance**: Zero-allocation logging with `[LoggerMessage]` source generators
 - **Concurrency**: Thread-safe session management with `ConcurrentDictionary`
 - **Transactions**: Atomic gift transfers using EF Core transactions
-- **Health Checks**: `/health` endpoint for container orchestration
+- **Health Checks**: `/health` endpoint for monitoring
 
 ## License
 
