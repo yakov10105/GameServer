@@ -130,25 +130,6 @@ dotnet run --project src/GameServer.ConsoleClient
 dotnet test
 ```
 
-## Environment Variables
-
-### API Server
-
-| Variable                         | Description                | Default         |
-| -------------------------------- | -------------------------- | --------------- |
-| `ASPNETCORE_ENVIRONMENT`         | Environment mode           | `Production`    |
-| `ASPNETCORE_URLS`                | Listen URL                 | `http://+:8080` |
-| `GameServer__MaxConnections`     | Max concurrent connections | `1000`          |
-| `GameServer__LatencyThresholdMs` | Slow message threshold     | `50`            |
-| `Serilog__MinimumLevel__Default` | Log level                  | `Information`   |
-
-### Console Client
-
-| Variable               | Description                       | Default                  |
-| ---------------------- | --------------------------------- | ------------------------ |
-| `GAMESERVER_URI`       | WebSocket server URL              | `ws://localhost:5000/ws` |
-| `GAMESERVER_LOG_LEVEL` | Log level (DEBUG/INFO/WARN/ERROR) | `Information`            |
-
 **Log Files:** Client logs are saved to the `logs/` directory with daily rolling files:
 
 ```
