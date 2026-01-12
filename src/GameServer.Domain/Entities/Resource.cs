@@ -29,14 +29,5 @@ public sealed class Resource
 
         Amount = newAmount;
     }
-
-    public void AddAmount(long delta)
-    {
-        var newAmount = Amount + delta;
-        if (newAmount < 0)
-            throw new InvalidOperationException($"Cannot reduce {Type} below zero");
-
-        Amount = newAmount;
-    }
 }
 

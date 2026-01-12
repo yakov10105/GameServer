@@ -39,14 +39,15 @@ public sealed class GameClient(ILogger<GameClient> logger) : IAsyncDisposable
 
         for (var attempt = 1; attempt <= _maxRetryAttempts; attempt++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             try
             {
                 logger.LogDebug("Connection attempt {Attempt}/{MaxAttempts}", attempt, _maxRetryAttempts);
 
                 using var timeoutCts = new CancellationTokenSource(_connectionTimeout);
-                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-                    cancellationToken,
-                    timeoutCts.Token);
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+
 
                 await _webSocket.ConnectAsync(serverUri, linkedCts.Token);
 
@@ -56,7 +57,11 @@ public sealed class GameClient(ILogger<GameClient> logger) : IAsyncDisposable
                     return true;
                 }
             }
-            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (OperationCanceledException)
             {
                 logger.LogWarning("Connection attempt {Attempt} timed out", attempt);
                 if (attempt == _maxRetryAttempts)
@@ -64,8 +69,10 @@ public sealed class GameClient(ILogger<GameClient> logger) : IAsyncDisposable
                     throw new TimeoutException($"Connection to {serverUri} timed out after {_maxRetryAttempts} attempts");
                 }
             }
-            catch (WebSocketException ex) when (attempt < _maxRetryAttempts)
+            catch (WebSocketException ex)
             {
+                if (attempt == _maxRetryAttempts) throw;
+
                 logger.LogWarning(ex, "Connection attempt {Attempt} failed, retrying in {Delay}ms", attempt, _retryDelay.TotalMilliseconds);
                 await Task.Delay(_retryDelay, cancellationToken);
             }
@@ -153,7 +160,7 @@ public sealed class GameClient(ILogger<GameClient> logger) : IAsyncDisposable
         return SendMessageAsync(TRequest.MessageType, request, cancellationToken);
     }
 
-    public void StartListening()
+    public void StartListening(CancellationToken externalToken = default)
     {
         ThrowIfDisposed();
 
@@ -168,7 +175,7 @@ public sealed class GameClient(ILogger<GameClient> logger) : IAsyncDisposable
         }
 
         logger.LogDebug("Starting background listener");
-        _listenerCts = new CancellationTokenSource();
+        _listenerCts = CancellationTokenSource.CreateLinkedTokenSource(externalToken);
         _listenerTask = Task.Run(() => ListenAsync(_listenerCts.Token));
     }
 

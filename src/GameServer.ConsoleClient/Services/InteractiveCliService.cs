@@ -1,6 +1,3 @@
-using GameServer.ConsoleClient.Clients;
-using Microsoft.Extensions.Logging;
-
 namespace GameServer.ConsoleClient.Services;
 
 public sealed class InteractiveCliService(GameClient client, ILogger<InteractiveCliService> logger)
@@ -9,18 +6,18 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
     private string? _currentDeviceId;
     private Guid? _currentPlayerId;
 
-    public async Task<int> RunAsync(string[] args, bool verboseMode = false)
+    public async Task<int> RunAsync(string[] args,CancellationToken ct)
     {
         var serverUri = ResolveServerUri(args);
 
         SetupEventHandlers();
 
-        PrintBanner(verboseMode);
+        PrintBanner();
 
         try
         {
             Console.Write($"Connecting to {serverUri}... ");
-            var connected = await client.ConnectAsync(serverUri);
+            var connected = await client.ConnectAsync(serverUri,ct);
 
             if (!connected)
             {
@@ -30,9 +27,10 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
             }
 
             Console.WriteLine("OK");
-            client.StartListening();
 
-            await RunCommandLoop();
+            client.StartListening(ct);
+
+            await RunCommandLoop(ct);
         }
         catch (Exception ex)
         {
@@ -121,14 +119,17 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
         };
     }
 
-    private async Task RunCommandLoop()
+    private async Task RunCommandLoop(CancellationToken ct)
     {
         PrintHelp();
 
-        while (client.IsConnected)
+        while (client.IsConnected && !ct.IsCancellationRequested)
         {
             Console.Write("> ");
             var input = Console.ReadLine();
+
+            if(ct.IsCancellationRequested)
+                break;
 
             if (string.IsNullOrWhiteSpace(input))
                 continue;
@@ -143,19 +144,19 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
                 switch (command)
                 {
                     case "login":
-                        await HandleLogin(parts);
+                        await HandleLogin(parts, ct);
                         break;
 
                     case "balance" or "update":
-                        await HandleUpdateResource(parts);
+                        await HandleUpdateResource(parts, ct);
                         break;
 
                     case "gift":
-                        await HandleSendGift(parts);
+                        await HandleSendGift(parts, ct);
                         break;
 
                     case "addfriend" or "friend":
-                        await HandleAddFriend(parts);
+                        await HandleAddFriend(parts, ct);
                         break;
 
                     case "status" or "whoami":
@@ -168,7 +169,7 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
 
                     case "quit" or "exit":
                         Console.WriteLine("Disconnecting...");
-                        await client.DisconnectAsync();
+                        await client.DisconnectAsync(ct);
                         return;
 
                     default:
@@ -186,7 +187,7 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
         }
     }
 
-    private async Task HandleLogin(string[] parts)
+    private async Task HandleLogin(string[] parts,CancellationToken ct = default)
     {
         if (_currentPlayerId.HasValue)
         {
@@ -202,10 +203,10 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
         
         Console.WriteLine($"Logging in with DeviceId: {deviceId}...");
         logger.LogInformation("Sending login request: DeviceId={DeviceId}", deviceId);
-        await client.SendAsync(new LoginRequest(deviceId));
+        await client.SendAsync(new LoginRequest(deviceId),ct);
     }
 
-    private async Task HandleUpdateResource(string[] parts)
+    private async Task HandleUpdateResource(string[] parts,CancellationToken ct = default)
     {
         if (!RequireLogin())
             return;
@@ -235,10 +236,10 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
         var action = value >= 0 ? "Adding" : "Deducting";
         Console.WriteLine($"{action} {Math.Abs(value)} {typeName}...");
         logger.LogInformation("Sending update resource: Type={ResourceType}, Value={Value}", typeName, value);
-        await client.SendAsync(new UpdateResourceRequest(resourceType, value));
+        await client.SendAsync(new UpdateResourceRequest(resourceType, value), ct);
     }
 
-    private async Task HandleSendGift(string[] parts)
+    private async Task HandleSendGift(string[] parts, CancellationToken ct = default)
     {
         if (!RequireLogin())
             return;
@@ -273,10 +274,10 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
         Console.WriteLine($"Sending {amount} {typeName} to {friendPlayerId}...");
         logger.LogInformation("Sending gift: FriendId={FriendId}, Type={ResourceType}, Amount={Amount}", 
             friendPlayerId, typeName, amount);
-        await client.SendAsync(new SendGiftRequest(friendPlayerId, resourceType, amount));
+        await client.SendAsync(new SendGiftRequest(friendPlayerId, resourceType, amount), ct);
     }
 
-    private async Task HandleAddFriend(string[] parts)
+    private async Task HandleAddFriend(string[] parts, CancellationToken ct = default)
     {
         if (!RequireLogin())
             return;
@@ -296,20 +297,14 @@ public sealed class InteractiveCliService(GameClient client, ILogger<Interactive
 
         Console.WriteLine($"Adding friend {friendPlayerId}...");
         logger.LogInformation("Sending add friend: FriendId={FriendId}", friendPlayerId);
-        await client.SendAsync(new AddFriendRequest(friendPlayerId));
+        await client.SendAsync(new AddFriendRequest(friendPlayerId), ct);
     }
 
-    private static void PrintBanner(bool verboseMode)
+    private static void PrintBanner()
     {
         Console.WriteLine("╔════════════════════════════════════════════╗");
         Console.WriteLine("║         Game Server Console Client         ║");
         Console.WriteLine("╚════════════════════════════════════════════╝");
-        if (verboseMode)
-        {
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("             [VERBOSE MODE ENABLED]           ");
-            Console.ResetColor();
-        }
         Console.WriteLine();
     }
 

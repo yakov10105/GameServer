@@ -119,8 +119,9 @@ dotnet restore
 # Terminal 1: Run the server
 dotnet run --project src/GameServer.Api
 
-# Terminal 2: Run the client
+# Terminal 2: Run the client (run it twice in different terminals to test communication between players)
 dotnet run --project src/GameServer.ConsoleClient
+
 ```
 
 ### Run Tests
@@ -155,8 +156,6 @@ logs/console-client-20260110.log
 logs/console-client-20260111.log
 ...
 ```
-
-Use `--verbose` or `-v` flag for debug-level console output.
 
 ## Protocol
 
@@ -308,7 +307,6 @@ graph LR
 - **Performance**: Zero-allocation logging with `[LoggerMessage]` source generators
 - **Concurrency**: Thread-safe session management with `ConcurrentDictionary`
 - **Transactions**: Atomic gift transfers using EF Core transactions
-- **Health Checks**: `/health` endpoint for monitoring
 
 ## License
 
