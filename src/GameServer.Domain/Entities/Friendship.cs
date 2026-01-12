@@ -32,11 +32,6 @@ public sealed class Friendship
         CreatedAt = DateTimeOffset.UtcNow;
     }
 
-    public bool Involves(Guid playerId)
-    {
-        return PlayerId1 == playerId || PlayerId2 == playerId;
-    }
-
     public Guid GetOtherPlayer(Guid playerId)
     {
         if (PlayerId1 == playerId)

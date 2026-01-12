@@ -24,25 +24,9 @@ public sealed class Player
         LastLogin = DateTimeOffset.UtcNow;
     }
 
-    public void UpdateLastLogin()
-    {
-        LastLogin = DateTimeOffset.UtcNow;
-    }
-
     public void AddResource(Resource resource)
     {
         _resources.Add(resource);
-    }
-
-    public Resource? GetResource(ResourceType type)
-    {
-        return _resources.FirstOrDefault(r => r.Type == type);
-    }
-
-    public bool HasSufficientResource(ResourceType type, long amount)
-    {
-        var resource = GetResource(type);
-        return resource != null && resource.Amount >= amount;
     }
 }
 

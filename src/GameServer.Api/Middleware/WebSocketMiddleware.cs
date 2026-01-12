@@ -107,9 +107,10 @@ public sealed class WebSocketMiddleware
         {
             while (webSocket.State is WebSocketState.Open)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var stopwatch = Stopwatch.StartNew();
                 var message = await ReceiveFullMessageAsync(webSocket, buffer, _options.MaxMessageSizeBytes, cancellationToken);
-                var latencyMs = stopwatch.Elapsed.TotalMilliseconds;
+                var latencyMs = stopwatch.Elapsed.Milliseconds;
 
                 _logger.MessageReceived(message.Length, latencyMs);
 
