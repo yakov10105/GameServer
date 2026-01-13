@@ -1,6 +1,8 @@
 # GameServer - WebSocket Game Server
 
-A game server built with .NET 8 using raw WebSockets.
+A Real-time game server built with .NET 8 using raw System.Net.WebSockets.
+
+This project demonstrates a production-ready approach to low-level socket communication, intentionally avoiding high-level abstractions like SignalR to showcase a custom, extensible message-routing architecture. Following Clean Architecture principles, the solution is designed for high maintainability and testability, featuring a decoupled domain layer, thread-safe session management, and atomic state persistence using SQLite with EF Core.
 
 ## Architecture
 
