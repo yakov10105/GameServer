@@ -3,7 +3,7 @@
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Is(LogEventLevel.Debug)
-    .WriteTo.File("logs/console-client-.log", rollingInterval: RollingInterval.Day)
+    .WriteTo.File("logs/client/console-client-.log", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 var builder = Host.CreateApplicationBuilder(args);
