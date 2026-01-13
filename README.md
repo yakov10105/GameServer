@@ -1,6 +1,6 @@
 # GameServer - WebSocket Game Server
 
-A production-grade, distributed-ready game server built with .NET 8 using raw WebSockets.
+A game server built with .NET 8 using raw WebSockets.
 
 ## Architecture
 
