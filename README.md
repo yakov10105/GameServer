@@ -114,7 +114,6 @@ erDiagram
 ```bash
 # Clone and restore
 git clone https://github.com/yakov10105/GameServer.git
-cd assignment
 dotnet restore
 
 # Terminal 1: Run the server
