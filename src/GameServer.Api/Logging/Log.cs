@@ -4,47 +4,6 @@ namespace GameServer.Api.Logging;
 
 public static partial class Log
 {
-    [LoggerMessage(
-        EventId = 1000,
-        Level = LogLevel.Information,
-        Message = "Player {PlayerId} logged in from device {DeviceId}")]
-    public static partial void PlayerLoggedIn(this ILogger logger, Guid playerId, string deviceId);
-
-    [LoggerMessage(
-        EventId = 1001,
-        Level = LogLevel.Information,
-        Message = "Player {PlayerId} disconnected")]
-    public static partial void PlayerDisconnected(this ILogger logger, Guid playerId);
-
-    [LoggerMessage(
-        EventId = 1002,
-        Level = LogLevel.Information,
-        Message = "Player {PlayerId} updated {ResourceType}: {OldAmount} -> {NewAmount}")]
-    public static partial void ResourceUpdated(this ILogger logger, Guid playerId, ResourceType resourceType, long oldAmount, long newAmount);
-
-    [LoggerMessage(
-        EventId = 1003,
-        Level = LogLevel.Information,
-        Message = "Player {SenderId} sent {Amount} {ResourceType} to Player {RecipientId}")]
-    public static partial void GiftSent(this ILogger logger, Guid senderId, long amount, ResourceType resourceType, Guid recipientId);
-
-    [LoggerMessage(
-        EventId = 2000,
-        Level = LogLevel.Warning,
-        Message = "Player {PlayerId} attempted login while already connected")]
-    public static partial void DuplicateLoginAttempt(this ILogger logger, Guid playerId);
-
-    [LoggerMessage(
-        EventId = 2001,
-        Level = LogLevel.Warning,
-        Message = "Player {SenderId} attempted to send gift to non-friend {RecipientId}")]
-    public static partial void GiftToNonFriend(this ILogger logger, Guid senderId, Guid recipientId);
-
-    [LoggerMessage(
-        EventId = 2002,
-        Level = LogLevel.Warning,
-        Message = "Player {PlayerId} has insufficient {ResourceType}: required {Required}, has {Available}")]
-    public static partial void InsufficientResources(this ILogger logger, Guid playerId, ResourceType resourceType, long required, long available);
 
     [LoggerMessage(
         EventId = 3000,

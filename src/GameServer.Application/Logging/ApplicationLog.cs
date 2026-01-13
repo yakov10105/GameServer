@@ -1,6 +1,3 @@
-using GameServer.Domain.Enums;
-using Microsoft.Extensions.Logging;
-
 namespace GameServer.Application.Logging;
 
 public static partial class ApplicationLog
