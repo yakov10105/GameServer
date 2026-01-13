@@ -129,11 +129,11 @@ dotnet run --project src/GameServer.ConsoleClient
 dotnet test
 ```
 
-**Log Files:** Client logs are saved to the `logs/` directory with daily rolling files:
+**Log Files:** Both Backend and Console-Client logs are saved to the `logs/` directory with daily rolling files:
 
 ```
-logs/console-client-20260110.log
-logs/console-client-20260111.log
+logs/api/api-log-20260113.log
+logs/client/console-client-20260111.log
 ...
 ```
 
