@@ -20,8 +20,6 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.EnsureCreated();
 }
 
-var startTime = DateTimeOffset.UtcNow;
-
 app.UseWebSockets();
 app.UseMiddleware<WebSocketMiddleware>();
 
