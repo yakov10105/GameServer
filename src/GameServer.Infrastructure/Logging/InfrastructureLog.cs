@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-
 namespace GameServer.Infrastructure.Logging;
 
 public static partial class InfrastructureLog
